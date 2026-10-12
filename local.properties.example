@@ -1,0 +1,4 @@
+# Copia este archivo como local.properties (Android Studio ya crea uno con sdk.dir)
+# y agrega tu clave gratuita de https://openweathermap.org/api (Current Weather Data).
+# Sin clave, la app usa la temperatura y humedad manuales del perfil.
+OPENWEATHER_API_KEY=pega_aqui_tu_clave

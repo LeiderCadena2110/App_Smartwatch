@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <!-- Clima (OpenWeatherMap) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Alertas con vibración -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Frecuencia cardíaca del reloj -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Alertas: notificación, alarma exacta y pantalla completa aunque el reloj esté en reposo -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault">
+
+        <uses-library
+            android:name="com.google.android.wearable"
+            android:required="true" />
+
+        <!-- La app funciona sola, sin app en el teléfono -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.DeviceDefault"
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Recibe la alarma y los botones "Ya tomé" / "En 5 min" con la app cerrada -->
+        <receiver
+            android:name=".alertas.AlertaReceiver"
+            android:exported="false" />
+    </application>
+</manifest>
