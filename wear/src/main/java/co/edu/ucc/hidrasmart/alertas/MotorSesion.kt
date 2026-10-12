@@ -65,6 +65,16 @@ object MotorSesion {
         Alarmas.notificar(contexto, alerta)
     }
 
+    /** Prueba real: la alarma del sistema suena en 10 s, para comprobarla con la app cerrada. */
+    fun programarPrueba(contexto: Context) {
+        val repo = Repositorio(contexto)
+        val sesion = repo.sesionActiva() ?: return
+        if (sesion.pausadaDesde != null) return
+        val cuando = ahora() + 10_000L
+        repo.guardarSesionActiva(sesion.copy(proximaAlerta = cuando))
+        Alarmas.programar(contexto, cuando)
+    }
+
     /** "Ya tomé": registra los ml y la próxima alerta queda a un intervalo de ahora. */
     fun yaTome(contexto: Context) {
         val repo = Repositorio(contexto)

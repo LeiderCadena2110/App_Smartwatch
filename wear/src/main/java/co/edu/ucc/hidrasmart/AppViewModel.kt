@@ -188,10 +188,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         recargar()
     }
 
-    /** Dispara la alerta ya mismo (para pruebas y demostraciones). */
-    fun probarAlerta() {
+    /** Programa la alarma real en 10 s: da tiempo de salir a la esfera para probarla. */
+    fun probarAlarma() {
         guardarLecturasPendientes()
-        MotorSesion.dispararAlerta(getApplication<Application>())
+        MotorSesion.programarPrueba(getApplication<Application>())
         recargar()
     }
 

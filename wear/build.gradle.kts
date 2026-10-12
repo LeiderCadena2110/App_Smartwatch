@@ -21,8 +21,8 @@ android {
         applicationId = "co.edu.ucc.hidrasmart"
         minSdk = 30 // Wear OS 3
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.2"
         buildConfigField(
             "String",
             "OPENWEATHER_API_KEY",

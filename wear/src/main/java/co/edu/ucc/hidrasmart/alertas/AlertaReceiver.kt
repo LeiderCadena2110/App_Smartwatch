@@ -8,7 +8,11 @@ import android.content.Intent
 class AlertaReceiver : BroadcastReceiver() {
     override fun onReceive(contexto: Context, intent: Intent) {
         when (intent.action) {
-            Alarmas.ACCION_ALARMA -> MotorSesion.dispararAlerta(contexto)
+            Alarmas.ACCION_ALARMA -> {
+                MotorSesion.dispararAlerta(contexto)
+                // Además de la notificación de pantalla completa, intentar abrir la alerta directamente
+                Alarmas.abrirPantallaAlerta(contexto)
+            }
             Alarmas.ACCION_YA_TOME -> MotorSesion.yaTome(contexto)
             Alarmas.ACCION_POSPONER -> MotorSesion.posponer(contexto)
         }

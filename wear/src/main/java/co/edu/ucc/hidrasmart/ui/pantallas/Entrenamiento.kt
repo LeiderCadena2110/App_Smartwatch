@@ -24,7 +24,9 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
+import co.edu.ucc.hidrasmart.alertas.Diagnostico
 import co.edu.ucc.hidrasmart.datos.Sensores
+import co.edu.ucc.hidrasmart.dominio.AlertaToma
 import co.edu.ucc.hidrasmart.ui.BotonRedondo
 import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.Nota
@@ -66,7 +68,11 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
                 })
             }
         }
-        item { Nota("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
+        if (Diagnostico.todoBien(contexto)) {
+            item { Nota("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
+        } else {
+            item { Nota("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", Colores.Ambar) }
+        }
         if (vm.perfil.tasaSudoracionLh == null) {
             item { Nota("Sin prueba de sudoración las alertas solo te recordarán tomar agua según tu sed.") }
         }
@@ -129,12 +135,17 @@ fun PantallaSesion(
         }
         item { ChipAccion("Terminar", Colores.Rojo, terminar) }
         if (!pausada && vm.alerta == null) {
-            item { ChipAccion("Probar alerta ahora", Colores.Gris, vm::probarAlerta, detalle = "Para pruebas y demostraciones") }
+            item {
+                ChipAccion(
+                    "Probar alarma (10 s)", Colores.Gris, vm::probarAlarma,
+                    detalle = "Sal a la esfera y espera",
+                )
+            }
         }
     }
 }
 
-/** Alerta de hidratación: aparece con vibración cuando llega la hora. */
+/** Alerta dentro de la app (cuando la app está abierta). */
 @Composable
 fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
     val alerta = vm.alerta
@@ -142,6 +153,22 @@ fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
         LaunchedEffect(Unit) { cerrar() }
         return
     }
+    ContenidoAlerta(
+        alerta = alerta,
+        onYaTome = {
+            vm.yaTome()
+            cerrar()
+        },
+        onPosponer = {
+            vm.posponer()
+            cerrar()
+        },
+    )
+}
+
+/** Contenido de la alerta; lo usan la app y la pantalla que sale sobre la esfera. */
+@Composable
+fun ContenidoAlerta(alerta: AlertaToma, onYaTome: () -> Unit, onPosponer: () -> Unit) {
     Pantalla {
         item { Titulo("¡Hora de hidratarte!") }
         item {
@@ -159,14 +186,8 @@ fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                BotonRedondo("✓", Colores.Verde, {
-                    vm.yaTome()
-                    cerrar()
-                }, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "Ya tomé")
-                BotonRedondo("5'", Colores.Gris, {
-                    vm.posponer()
-                    cerrar()
-                }, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "En 5 minutos")
+                BotonRedondo("✓", Colores.Verde, onYaTome, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "Ya tomé")
+                BotonRedondo("5'", Colores.Gris, onPosponer, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "En 5 minutos")
             }
         }
         item {

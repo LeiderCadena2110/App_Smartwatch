@@ -29,7 +29,9 @@ object Alarmas {
     const val ACCION_YA_TOME = "co.edu.ucc.hidrasmart.YA_TOME"
     const val ACCION_POSPONER = "co.edu.ucc.hidrasmart.POSPONER"
 
-    private const val CANAL = "alertas_hidratacion"
+    // Canal nuevo (v2) para que tome sonido de alarma e importancia alta aunque exista el anterior
+    const val CANAL = "alertas_hidratacion_v2"
+    private const val CANAL_VIEJO = "alertas_hidratacion"
     private const val ID_NOTIFICACION = 1001
     private val PATRON_VIBRACION = longArrayOf(0, 500, 250, 500, 250, 800)
 
@@ -66,16 +68,34 @@ object Alarmas {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVibrate(PATRON_VIBRACION)
-            .setAutoCancel(true)
-            .setContentIntent(abrirApp(contexto))
-            .setFullScreenIntent(abrirApp(contexto), true)
+            .setOngoing(true)
+            .setContentIntent(intentPantallaAlerta(contexto))
+            .setFullScreenIntent(intentPantallaAlerta(contexto), true)
             .addAction(R.drawable.ic_gota, "Ya tomé", intentReceptor(contexto, ACCION_YA_TOME, 2))
             .addAction(R.drawable.ic_gota, "En 5 min", intentReceptor(contexto, ACCION_POSPONER, 3))
             .build()
         try {
+            // Quitar la anterior para que vuelva a sonar y a abrir la pantalla completa
+            NotificationManagerCompat.from(contexto).cancel(ID_NOTIFICACION)
             NotificationManagerCompat.from(contexto).notify(ID_NOTIFICACION, notificacion)
         } catch (e: SecurityException) {
             // Sin permiso de notificaciones: la alerta se verá al abrir la app
+        }
+    }
+
+    /**
+     * Abre la pantalla de alerta encima de la esfera. Si Android no deja abrirla desde
+     * segundo plano, la notificación de pantalla completa se encarga.
+     */
+    fun abrirPantallaAlerta(contexto: Context) {
+        if (MainActivity.visible || AlertaActivity.visible) return
+        try {
+            contexto.startActivity(
+                Intent(contexto, AlertaActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+        } catch (e: Exception) {
+            // Bloqueado por el sistema: queda la notificación
         }
     }
 
@@ -83,7 +103,7 @@ object Alarmas {
         NotificationManagerCompat.from(contexto).cancel(ID_NOTIFICACION)
     }
 
-    private fun crearCanal(contexto: Context) {
+    fun crearCanal(contexto: Context) {
         val canal = NotificationChannel(CANAL, "Alertas de hidratación", NotificationManager.IMPORTANCE_HIGH).apply {
             description = "Avisa cuándo y cuánto tomar agua durante el entrenamiento"
             enableVibration(true)
@@ -96,7 +116,10 @@ object Alarmas {
                     .build(),
             )
         }
-        contexto.getSystemService(NotificationManager::class.java)?.createNotificationChannel(canal)
+        contexto.getSystemService(NotificationManager::class.java)?.apply {
+            deleteNotificationChannel(CANAL_VIEJO)
+            createNotificationChannel(canal)
+        }
     }
 
     private fun intentReceptor(contexto: Context, accion: String, codigo: Int): PendingIntent =
@@ -104,6 +127,15 @@ object Alarmas {
             contexto,
             codigo,
             Intent(contexto, AlertaReceiver::class.java).setAction(accion),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+    private fun intentPantallaAlerta(contexto: Context): PendingIntent =
+        PendingIntent.getActivity(
+            contexto,
+            4,
+            Intent(contexto, AlertaActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 

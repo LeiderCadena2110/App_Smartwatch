@@ -11,7 +11,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import android.Manifest
+import android.os.Build
 import co.edu.ucc.hidrasmart.AppViewModel
+import co.edu.ucc.hidrasmart.BuildConfig
+import co.edu.ucc.hidrasmart.alertas.Diagnostico
 import co.edu.ucc.hidrasmart.datos.Sensores
 import co.edu.ucc.hidrasmart.dominio.CalculadoraHidratacion
 import co.edu.ucc.hidrasmart.dominio.Perfil
@@ -77,8 +83,29 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         permiso = Sensores.tienePermisos(contexto)
     }
 
+    // Diagnóstico de alertas: se vuelve a revisar cada vez que se regresa a esta pantalla
+    var notificaciones by remember { mutableStateOf(Diagnostico.notificaciones(contexto)) }
+    var exactas by remember { mutableStateOf(Diagnostico.alarmasExactas(contexto)) }
+    var completa by remember { mutableStateOf(Diagnostico.pantallaCompleta(contexto)) }
+    fun revisar() {
+        permiso = Sensores.tienePermisos(contexto)
+        notificaciones = Diagnostico.notificaciones(contexto)
+        exactas = Diagnostico.alarmasExactas(contexto)
+        completa = Diagnostico.pantallaCompleta(contexto)
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { revisar() }
+    var yaPidioNotificaciones by rememberSaveable { mutableStateOf(false) }
+    val pedirNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        revisar()
+        // Si el sistema ya no muestra el diálogo, se abren los ajustes de la app
+        if (!notificaciones) Diagnostico.abrirAjustesNotificaciones(contexto)
+    }
+
     Pantalla {
         item { Titulo("Perfil y ajustes") }
+        if (!(notificaciones && exactas && completa)) {
+            item { Nota("⚠ Las alertas no saldrán con la app cerrada: baja a \"Diagnóstico de alertas\".", Colores.Ambar) }
+        }
         item {
             ChipAccion(
                 "Prueba de sudoración", Colores.Agua, abrirPrueba,
@@ -113,6 +140,39 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
             )
         }
         item { Nota("Altitud, temperatura y humedad manuales se usan cuando no hay barómetro o internet.") }
+
+        item { Titulo("Diagnóstico de alertas", "Para que salgan con la app cerrada") }
+        item {
+            ChipAccion(
+                "Notificaciones", if (notificaciones) Colores.Verde else Colores.Rojo,
+                {
+                    if (!notificaciones) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !yaPidioNotificaciones) {
+                            yaPidioNotificaciones = true
+                            pedirNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            Diagnostico.abrirAjustesNotificaciones(contexto)
+                        }
+                    }
+                },
+                detalle = if (notificaciones) "Activadas" else "BLOQUEADAS · toca para activar",
+            )
+        }
+        item {
+            ChipAccion(
+                "Alarmas exactas", if (exactas) Colores.Verde else Colores.Rojo,
+                { if (!exactas) Diagnostico.abrirAjustesAlarmas(contexto) },
+                detalle = if (exactas) "Permitidas" else "Toca para permitir",
+            )
+        }
+        item {
+            ChipAccion(
+                "Pantalla completa", if (completa) Colores.Verde else Colores.Rojo,
+                { if (!completa) Diagnostico.abrirAjustesPantallaCompleta(contexto) },
+                detalle = if (completa) "Permitida" else "Toca para permitir",
+            )
+        }
+        item { Nota("Versión ${BuildConfig.VERSION_NAME}") }
     }
 }
 

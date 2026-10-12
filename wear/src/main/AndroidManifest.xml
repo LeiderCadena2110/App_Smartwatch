@@ -47,6 +47,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Pantalla de alerta que sale sobre la esfera aunque la app esté cerrada -->
+        <activity
+            android:name=".alertas.AlertaActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity="co.edu.ucc.hidrasmart.alerta"
+            android:theme="@android:style/Theme.DeviceDefault"
+            android:turnScreenOn="true" />
+
         <!-- Recibe la alarma y los botones "Ya tomé" / "En 5 min" con la app cerrada -->
         <receiver
             android:name=".alertas.AlertaReceiver"
