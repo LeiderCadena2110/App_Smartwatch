@@ -30,13 +30,13 @@ import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.format.formatDuration
 import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.withThousands
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.EdgeProgress
-import co.edu.ucc.hidrasmart.ui.InsightCard
-import co.edu.ucc.hidrasmart.ui.Note
-import co.edu.ucc.hidrasmart.ui.RoundButton
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.EdgeProgress
+import co.edu.ucc.hidrasmart.ui.components.InsightCard
+import co.edu.ucc.hidrasmart.ui.components.Note
+import co.edu.ucc.hidrasmart.ui.components.RoundButton
+import co.edu.ucc.hidrasmart.ui.components.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 /** Tipos de entrenamiento (también los usa el planificador de IA). */

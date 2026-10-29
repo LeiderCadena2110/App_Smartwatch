@@ -1,11 +1,11 @@
 package co.edu.ucc.hidrasmart.ai
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 /**
  * Cliente mínimo de la API de Gemini (Google AI Studio) con HttpURLConnection.

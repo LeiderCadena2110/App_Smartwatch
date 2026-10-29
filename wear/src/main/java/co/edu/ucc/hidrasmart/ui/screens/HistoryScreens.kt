@@ -7,15 +7,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.Note
-import co.edu.ucc.hidrasmart.ui.WearScreen
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.format.displayName
 import co.edu.ucc.hidrasmart.format.formatDuration
+import co.edu.ucc.hidrasmart.format.toLocalDate
 import co.edu.ucc.hidrasmart.format.toTimeText
 import co.edu.ucc.hidrasmart.format.withThousands
-import co.edu.ucc.hidrasmart.format.displayName
+import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.Note
+import co.edu.ucc.hidrasmart.ui.components.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import java.time.LocalDate
 

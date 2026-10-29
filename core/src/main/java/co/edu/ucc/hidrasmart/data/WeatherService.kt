@@ -1,12 +1,12 @@
 package co.edu.ucc.hidrasmart.data
 
 import co.edu.ucc.hidrasmart.domain.Weather
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 /** Consulta temperatura y humedad actuales en OpenWeatherMap (plan gratuito). */
 object WeatherService {

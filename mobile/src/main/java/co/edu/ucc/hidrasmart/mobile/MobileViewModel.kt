@@ -23,11 +23,11 @@ import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SavedSession
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.format.toLocalDate
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** Un mensaje del chat con el coach. */
 data class ChatMessage(

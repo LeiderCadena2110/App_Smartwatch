@@ -2,12 +2,12 @@ package co.edu.ucc.hidrasmart.alerts
 
 import android.content.Context
 import co.edu.ucc.hidrasmart.data.HydrationRepository
-import co.edu.ucc.hidrasmart.domain.IntakeAlert
-import co.edu.ucc.hidrasmart.domain.HydrationCalculator
-import co.edu.ucc.hidrasmart.domain.Conditions
 import co.edu.ucc.hidrasmart.domain.ActiveSession
-import co.edu.ucc.hidrasmart.domain.SavedSession
+import co.edu.ucc.hidrasmart.domain.Conditions
+import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Intake
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
+import co.edu.ucc.hidrasmart.domain.SavedSession
 
 /**
  * Reglas del entrenamiento y de las alertas. Todo se guarda en el reloj, así funciona

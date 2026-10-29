@@ -1,4 +1,6 @@
-package co.edu.ucc.hidrasmart.ui.screens
+package co.edu.ucc.hidrasmart.ui.navigation
+
+import co.edu.ucc.hidrasmart.ui.screens.ProfileField
 
 /** Navigation routes (see the hierarchy diagram in the documentation). */
 object Routes {

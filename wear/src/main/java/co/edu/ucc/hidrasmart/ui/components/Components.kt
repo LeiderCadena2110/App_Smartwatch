@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui
+package co.edu.ucc.hidrasmart.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

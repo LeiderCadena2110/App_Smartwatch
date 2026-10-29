@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart
+package co.edu.ucc.hidrasmart.ui.navigation
 
 import android.app.Activity
 import android.view.WindowManager
@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.ui.screens.AlertScreen
 import co.edu.ucc.hidrasmart.ui.screens.CoachScreen
 import co.edu.ucc.hidrasmart.ui.screens.ConfirmEndScreen
@@ -25,7 +26,6 @@ import co.edu.ucc.hidrasmart.ui.screens.LogIntakeScreen
 import co.edu.ucc.hidrasmart.ui.screens.PlanScreen
 import co.edu.ucc.hidrasmart.ui.screens.ProfileField
 import co.edu.ucc.hidrasmart.ui.screens.ProfileScreen
-import co.edu.ucc.hidrasmart.ui.screens.Routes
 import co.edu.ucc.hidrasmart.ui.screens.SessionDetailScreen
 import co.edu.ucc.hidrasmart.ui.screens.SessionScreen
 import co.edu.ucc.hidrasmart.ui.screens.SummaryScreen

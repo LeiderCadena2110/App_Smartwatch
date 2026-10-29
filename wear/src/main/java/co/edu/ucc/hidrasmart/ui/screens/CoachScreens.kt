@@ -29,12 +29,12 @@ import co.edu.ucc.hidrasmart.ai.LocalCoach
 import co.edu.ucc.hidrasmart.ai.PlanSource
 import co.edu.ucc.hidrasmart.ai.RiskLevel
 import co.edu.ucc.hidrasmart.format.withThousands
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.InsightCard
-import co.edu.ucc.hidrasmart.ui.Note
-import co.edu.ucc.hidrasmart.ui.NumberStepper
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.InsightCard
+import co.edu.ucc.hidrasmart.ui.components.Note
+import co.edu.ucc.hidrasmart.ui.components.NumberStepper
+import co.edu.ucc.hidrasmart.ui.components.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlin.math.roundToInt
 

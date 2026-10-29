@@ -1,5 +1,7 @@
 package co.edu.ucc.hidrasmart.ui.screens
 
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -13,8 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import android.Manifest
-import android.os.Build
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
 import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
@@ -22,13 +22,13 @@ import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.NumberStepper
-import co.edu.ucc.hidrasmart.ui.Note
-import co.edu.ucc.hidrasmart.ui.WearScreen
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
 import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.Note
+import co.edu.ucc.hidrasmart.ui.components.NumberStepper
+import co.edu.ucc.hidrasmart.ui.components.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlin.math.roundToInt
 

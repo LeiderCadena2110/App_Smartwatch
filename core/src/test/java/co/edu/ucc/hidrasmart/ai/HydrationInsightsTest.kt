@@ -3,15 +3,15 @@ package co.edu.ucc.hidrasmart.ai
 import co.edu.ucc.hidrasmart.domain.Intake
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SavedSession
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 class HydrationInsightsTest {
 

@@ -8,13 +8,13 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.core.content.ContextCompat
+import kotlin.random.Random
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 /** Lectura de frecuencia cardíaca. [simulada] = true cuando no hay sensor (por ejemplo, en el emulador). */
 data class HeartRateReading(val bpm: Int, val simulated: Boolean)

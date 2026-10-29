@@ -19,11 +19,11 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.NumberStepper
-import co.edu.ucc.hidrasmart.ui.WearScreen
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
 import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.NumberStepper
+import co.edu.ucc.hidrasmart.ui.components.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
