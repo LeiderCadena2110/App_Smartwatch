@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import co.edu.ucc.hidrasmart.data.Repositorio
-import co.edu.ucc.hidrasmart.domain.AlertaToma
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.screens.ContenidoAlerta
 import co.edu.ucc.hidrasmart.ui.theme.HidraTema
 
@@ -20,7 +20,7 @@ import co.edu.ucc.hidrasmart.ui.theme.HidraTema
 class AlertaActivity : ComponentActivity() {
 
     private lateinit var repo: Repositorio
-    private var alerta by mutableStateOf<AlertaToma?>(null)
+    private var alerta by mutableStateOf<IntakeAlert?>(null)
 
     private val oyente = SharedPreferences.OnSharedPreferenceChangeListener { _, clave ->
         if (clave !in Repositorio.CLAVES_LECTURAS) actualizar()
@@ -41,10 +41,10 @@ class AlertaActivity : ComponentActivity() {
         }
         setContent {
             HidraTema {
-                val actual = alerta
-                if (actual != null) {
+                val current = alerta
+                if (current != null) {
                     ContenidoAlerta(
-                        alerta = actual,
+                        alerta = current,
                         onYaTome = {
                             MotorSesion.yaTome(this)
                             finish()

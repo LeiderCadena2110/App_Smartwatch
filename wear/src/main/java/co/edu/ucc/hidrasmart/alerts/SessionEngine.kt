@@ -2,12 +2,12 @@ package co.edu.ucc.hidrasmart.alerts
 
 import android.content.Context
 import co.edu.ucc.hidrasmart.data.Repositorio
-import co.edu.ucc.hidrasmart.domain.AlertaToma
-import co.edu.ucc.hidrasmart.domain.CalculadoraHidratacion
-import co.edu.ucc.hidrasmart.domain.Condiciones
-import co.edu.ucc.hidrasmart.domain.SesionEnCurso
-import co.edu.ucc.hidrasmart.domain.SesionGuardada
-import co.edu.ucc.hidrasmart.domain.Toma
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
+import co.edu.ucc.hidrasmart.domain.HydrationCalculator
+import co.edu.ucc.hidrasmart.domain.Conditions
+import co.edu.ucc.hidrasmart.domain.ActiveSession
+import co.edu.ucc.hidrasmart.domain.SavedSession
+import co.edu.ucc.hidrasmart.domain.Intake
 
 /**
  * Reglas del entrenamiento y de las alertas. Todo se guarda en el reloj, así funciona
@@ -18,30 +18,30 @@ object MotorSesion {
     private const val POSPONER_MS = 5 * 60_000L
 
     private fun ahora() = System.currentTimeMillis()
-    private fun intervaloMs(repo: Repositorio) = repo.perfil().intervaloMin * 60_000L
+    private fun intervaloMs(repo: Repositorio) = repo.perfil().intervalMin * 60_000L
 
-    fun iniciar(contexto: Context, tipo: String) {
+    fun iniciar(contexto: Context, type: String) {
         val repo = Repositorio(contexto)
         if (repo.sesionActiva() != null) return
         val t = ahora()
-        val sesion = SesionEnCurso(tipo = tipo, inicio = t, proximaAlerta = t + intervaloMs(repo))
+        val sesion = ActiveSession(type = type, startTime = t, nextAlertAt = t + intervaloMs(repo))
         repo.guardarAlerta(null)
         repo.guardarSesionActiva(sesion)
-        Alarmas.programar(contexto, sesion.proximaAlerta)
+        Alarmas.programar(contexto, sesion.nextAlertAt)
     }
 
     /** Llega la hora: calcula los ml, guarda la alerta, avisa y programa la siguiente. */
     fun dispararAlerta(contexto: Context) {
         val repo = Repositorio(contexto)
         val sesion = repo.sesionActiva() ?: return
-        if (sesion.pausadaDesde != null) return
+        if (sesion.pausedSince != null) return
         val t = ahora()
         val siguiente = t + intervaloMs(repo)
 
         val pendiente = repo.alertaPendiente()
         if (pendiente != null) {
             // No respondió la anterior: se recuerda la misma, sin sumar otra recomendación
-            repo.guardarSesionActiva(sesion.copy(proximaAlerta = siguiente))
+            repo.guardarSesionActiva(sesion.copy(nextAlertAt = siguiente))
             Alarmas.programar(contexto, siguiente)
             Alarmas.notificar(contexto, pendiente)
             return
@@ -49,18 +49,18 @@ object MotorSesion {
 
         val perfil = repo.perfil()
         val clima = repo.ultimoClima()
-        val condiciones = Condiciones(
-            altitudM = repo.ultimaAltitud() ?: perfil.altitudHabitualM,
-            temperaturaC = clima?.temperaturaC ?: perfil.temperaturaManualC,
-            humedadPct = clima?.humedadPct ?: perfil.humedadManualPct,
-            fcBpm = repo.ultimaFc(),
+        val condiciones = Conditions(
+            altitudeM = repo.ultimaAltitud() ?: perfil.usualAltitudeM,
+            temperatureC = clima?.temperatureC ?: perfil.manualTemperatureC,
+            humidityPct = clima?.humidityPct ?: perfil.manualHumidityPct,
+            heartRateBpm = repo.ultimaFc(),
         )
-        val factor = CalculadoraHidratacion.factor(condiciones, perfil.condicionesPrueba, perfil.edad)
-        val ml = perfil.tasaSudoracionLh?.let { CalculadoraHidratacion.mlPorAlerta(it, factor.valor, perfil.intervaloMin) }
-        val alerta = AlertaToma(ml, factor, t)
+        val factor = HydrationCalculator.factor(condiciones, perfil.testConditions, perfil.age)
+        val ml = perfil.sweatRateLh?.let { HydrationCalculator.mlPerAlert(it, factor.value, perfil.intervalMin) }
+        val alerta = IntakeAlert(ml, factor, t)
 
         repo.guardarAlerta(alerta)
-        repo.guardarSesionActiva(sesion.copy(recomendadoMl = sesion.recomendadoMl + (ml ?: 0), proximaAlerta = siguiente))
+        repo.guardarSesionActiva(sesion.copy(recommendedMl = sesion.recommendedMl + (ml ?: 0), nextAlertAt = siguiente))
         Alarmas.programar(contexto, siguiente)
         Alarmas.notificar(contexto, alerta)
     }
@@ -69,9 +69,9 @@ object MotorSesion {
     fun programarPrueba(contexto: Context) {
         val repo = Repositorio(contexto)
         val sesion = repo.sesionActiva() ?: return
-        if (sesion.pausadaDesde != null) return
+        if (sesion.pausedSince != null) return
         val cuando = ahora() + 10_000L
-        repo.guardarSesionActiva(sesion.copy(proximaAlerta = cuando))
+        repo.guardarSesionActiva(sesion.copy(nextAlertAt = cuando))
         Alarmas.programar(contexto, cuando)
     }
 
@@ -84,7 +84,7 @@ object MotorSesion {
         Alarmas.quitarNotificacion(contexto)
         val sesion = repo.sesionActiva() ?: return
         val siguiente = ahora() + intervaloMs(repo)
-        repo.guardarSesionActiva(sesion.copy(proximaAlerta = siguiente))
+        repo.guardarSesionActiva(sesion.copy(nextAlertAt = siguiente))
         Alarmas.programar(contexto, siguiente)
     }
 
@@ -97,30 +97,30 @@ object MotorSesion {
         val sesion = repo.sesionActiva() ?: return
         val siguiente = ahora() + POSPONER_MS
         repo.guardarSesionActiva(
-            sesion.copy(proximaAlerta = siguiente, recomendadoMl = (sesion.recomendadoMl - (alerta.ml ?: 0)).coerceAtLeast(0)),
+            sesion.copy(nextAlertAt = siguiente, recommendedMl = (sesion.recommendedMl - (alerta.ml ?: 0)).coerceAtLeast(0)),
         )
         Alarmas.programar(contexto, siguiente)
     }
 
     fun registrarToma(contexto: Context, ml: Int) {
         val repo = Repositorio(contexto)
-        repo.agregarToma(Toma(ahora(), ml))
-        repo.sesionActiva()?.let { repo.guardarSesionActiva(it.copy(tomadoMl = it.tomadoMl + ml)) }
+        repo.agregarToma(Intake(ahora(), ml))
+        repo.sesionActiva()?.let { repo.guardarSesionActiva(it.copy(drankMl = it.drankMl + ml)) }
     }
 
     fun pausarOReanudar(contexto: Context) {
         val repo = Repositorio(contexto)
         val sesion = repo.sesionActiva() ?: return
         val t = ahora()
-        val pausadaDesde = sesion.pausadaDesde
-        if (pausadaDesde == null) {
-            repo.guardarSesionActiva(sesion.copy(pausadaDesde = t))
+        val pausedSince = sesion.pausedSince
+        if (pausedSince == null) {
+            repo.guardarSesionActiva(sesion.copy(pausedSince = t))
             Alarmas.cancelar(contexto)
         } else {
-            val pausa = t - pausadaDesde
-            val reanudada = sesion.copy(pausadaDesde = null, pausadoMs = sesion.pausadoMs + pausa, proximaAlerta = sesion.proximaAlerta + pausa)
+            val pausa = t - pausedSince
+            val reanudada = sesion.copy(pausedSince = null, pausedMs = sesion.pausedMs + pausa, nextAlertAt = sesion.nextAlertAt + pausa)
             repo.guardarSesionActiva(reanudada)
-            Alarmas.programar(contexto, reanudada.proximaAlerta)
+            Alarmas.programar(contexto, reanudada.nextAlertAt)
         }
     }
 
@@ -129,17 +129,17 @@ object MotorSesion {
         if (lecturas <= 0) return
         val repo = Repositorio(contexto)
         val sesion = repo.sesionActiva() ?: return
-        repo.guardarSesionActiva(sesion.copy(fcSuma = sesion.fcSuma + suma, fcLecturas = sesion.fcLecturas + lecturas))
+        repo.guardarSesionActiva(sesion.copy(heartRateSum = sesion.heartRateSum + suma, heartRateReadings = sesion.heartRateReadings + lecturas))
     }
 
     /** Si cambia el intervalo durante la sesión, la próxima alerta se ajusta de una vez. */
     fun ajustarIntervalo(contexto: Context) {
         val repo = Repositorio(contexto)
         val sesion = repo.sesionActiva() ?: return
-        if (sesion.pausadaDesde != null) return
+        if (sesion.pausedSince != null) return
         val conNuevo = ahora() + intervaloMs(repo)
-        if (conNuevo < sesion.proximaAlerta) {
-            repo.guardarSesionActiva(sesion.copy(proximaAlerta = conNuevo))
+        if (conNuevo < sesion.nextAlertAt) {
+            repo.guardarSesionActiva(sesion.copy(nextAlertAt = conNuevo))
             Alarmas.programar(contexto, conNuevo)
         }
     }
@@ -152,15 +152,15 @@ object MotorSesion {
         Alarmas.cancelar(contexto)
         Alarmas.quitarNotificacion(contexto)
         repo.guardarAlerta(null)
-        val guardada = SesionGuardada(
+        val guardada = SavedSession(
             id = t,
-            tipo = s.tipo,
-            inicio = s.inicio,
-            fin = t,
-            duracionSeg = (((s.pausadaDesde ?: t) - s.inicio - s.pausadoMs) / 1000).coerceAtLeast(0),
-            fcMedia = if (s.fcLecturas > 0) (s.fcSuma / s.fcLecturas).toInt() else null,
-            tomadoMl = s.tomadoMl,
-            recomendadoMl = s.recomendadoMl.coerceAtLeast(0),
+            type = s.type,
+            startTime = s.startTime,
+            endTime = t,
+            durationSec = (((s.pausedSince ?: t) - s.startTime - s.pausedMs) / 1000).coerceAtLeast(0),
+            avgHeartRate = if (s.heartRateReadings > 0) (s.heartRateSum / s.heartRateReadings).toInt() else null,
+            drankMl = s.drankMl,
+            recommendedMl = s.recommendedMl.coerceAtLeast(0),
         )
         repo.guardarSesion(guardada)
         repo.guardarSesionActiva(null)

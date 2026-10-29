@@ -2,14 +2,14 @@ package co.edu.ucc.hidrasmart.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import co.edu.ucc.hidrasmart.domain.AlertaToma
-import co.edu.ucc.hidrasmart.domain.Clima
-import co.edu.ucc.hidrasmart.domain.Condiciones
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
+import co.edu.ucc.hidrasmart.domain.Weather
+import co.edu.ucc.hidrasmart.domain.Conditions
 import co.edu.ucc.hidrasmart.domain.Factor
-import co.edu.ucc.hidrasmart.domain.Perfil
-import co.edu.ucc.hidrasmart.domain.SesionEnCurso
-import co.edu.ucc.hidrasmart.domain.SesionGuardada
-import co.edu.ucc.hidrasmart.domain.Toma
+import co.edu.ucc.hidrasmart.domain.Profile
+import co.edu.ucc.hidrasmart.domain.ActiveSession
+import co.edu.ucc.hidrasmart.domain.SavedSession
+import co.edu.ucc.hidrasmart.domain.Intake
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -24,136 +24,136 @@ class Repositorio(contexto: Context) {
     // ---------- Perfil ----------
     fun perfilConfigurado(): Boolean = prefs.contains(PERFIL)
 
-    fun perfil(): Perfil {
-        val texto = prefs.getString(PERFIL, null) ?: return Perfil()
+    fun perfil(): Profile {
+        val texto = prefs.getString(PERFIL, null) ?: return Profile()
         val o = JSONObject(texto)
-        return Perfil(
-            pesoKg = o.optDouble("pesoKg", 70.0),
-            edad = o.optInt("edad", 22),
-            metaDiariaMl = o.optInt("metaDiariaMl", 2000),
-            intervaloMin = o.optInt("intervaloMin", 15),
-            ciudad = o.optString("ciudad", "Pasto,CO"),
-            altitudHabitualM = o.optDouble("altitudHabitualM", 2527.0),
-            temperaturaManualC = o.optDouble("temperaturaManualC", 14.0),
-            humedadManualPct = o.optDouble("humedadManualPct", 75.0),
-            tasaSudoracionLh = o.dobleONulo("tasaSudoracionLh"),
-            condicionesPrueba = o.optJSONObject("condicionesPrueba")?.aCondiciones(),
+        return Profile(
+            weightKg = o.optDouble("pesoKg", 70.0),
+            age = o.optInt("edad", 22),
+            dailyGoalMl = o.optInt("metaDiariaMl", 2000),
+            intervalMin = o.optInt("intervaloMin", 15),
+            city = o.optString("ciudad", "Pasto,CO"),
+            usualAltitudeM = o.optDouble("altitudHabitualM", 2527.0),
+            manualTemperatureC = o.optDouble("temperaturaManualC", 14.0),
+            manualHumidityPct = o.optDouble("humedadManualPct", 75.0),
+            sweatRateLh = o.dobleONulo("tasaSudoracionLh"),
+            testConditions = o.optJSONObject("condicionesPrueba")?.aCondiciones(),
         )
     }
 
-    fun guardarPerfil(p: Perfil) {
+    fun guardarPerfil(p: Profile) {
         val o = JSONObject()
-            .put("pesoKg", p.pesoKg)
-            .put("edad", p.edad)
-            .put("metaDiariaMl", p.metaDiariaMl)
-            .put("intervaloMin", p.intervaloMin)
-            .put("ciudad", p.ciudad)
-            .put("altitudHabitualM", p.altitudHabitualM)
-            .put("temperaturaManualC", p.temperaturaManualC)
-            .put("humedadManualPct", p.humedadManualPct)
-        p.tasaSudoracionLh?.let { o.put("tasaSudoracionLh", it) }
-        p.condicionesPrueba?.let { o.put("condicionesPrueba", it.aJson()) }
+            .put("pesoKg", p.weightKg)
+            .put("edad", p.age)
+            .put("metaDiariaMl", p.dailyGoalMl)
+            .put("intervaloMin", p.intervalMin)
+            .put("ciudad", p.city)
+            .put("altitudHabitualM", p.usualAltitudeM)
+            .put("temperaturaManualC", p.manualTemperatureC)
+            .put("humedadManualPct", p.manualHumidityPct)
+        p.sweatRateLh?.let { o.put("tasaSudoracionLh", it) }
+        p.testConditions?.let { o.put("condicionesPrueba", it.aJson()) }
         prefs.edit().putString(PERFIL, o.toString()).apply()
     }
 
     // ---------- Tomas de agua ----------
-    fun tomas(): List<Toma> = leerLista(TOMAS) { Toma(it.getLong("instante"), it.getInt("ml")) }
+    fun tomas(): List<Intake> = leerLista(TOMAS) { Intake(it.getLong("instante"), it.getInt("ml")) }
 
-    fun agregarToma(t: Toma) {
+    fun agregarToma(t: Intake) {
         val lista = tomas() + t
-        guardarLista(TOMAS, lista.takeLast(MAX_TOMAS)) { JSONObject().put("instante", it.instante).put("ml", it.ml) }
+        guardarLista(TOMAS, lista.takeLast(MAX_TOMAS)) { JSONObject().put("instante", it.timestamp).put("ml", it.ml) }
     }
 
     // ---------- Sesiones de entrenamiento ----------
-    fun sesiones(): List<SesionGuardada> = leerLista(SESIONES) {
-        SesionGuardada(
+    fun sesiones(): List<SavedSession> = leerLista(SESIONES) {
+        SavedSession(
             id = it.getLong("id"),
-            tipo = it.getString("tipo"),
-            inicio = it.getLong("inicio"),
-            fin = it.getLong("fin"),
-            duracionSeg = it.getLong("duracionSeg"),
-            fcMedia = if (it.has("fcMedia")) it.getInt("fcMedia") else null,
-            tomadoMl = it.getInt("tomadoMl"),
-            recomendadoMl = it.getInt("recomendadoMl"),
+            type = it.getString("tipo"),
+            startTime = it.getLong("inicio"),
+            endTime = it.getLong("fin"),
+            durationSec = it.getLong("duracionSeg"),
+            avgHeartRate = if (it.has("fcMedia")) it.getInt("fcMedia") else null,
+            drankMl = it.getInt("tomadoMl"),
+            recommendedMl = it.getInt("recomendadoMl"),
         )
     }
 
-    fun guardarSesion(s: SesionGuardada) {
+    fun guardarSesion(s: SavedSession) {
         val lista = sesiones() + s
         guardarLista(SESIONES, lista.takeLast(MAX_SESIONES)) {
             val o = JSONObject()
-                .put("id", it.id).put("tipo", it.tipo).put("inicio", it.inicio).put("fin", it.fin)
-                .put("duracionSeg", it.duracionSeg).put("tomadoMl", it.tomadoMl).put("recomendadoMl", it.recomendadoMl)
-            it.fcMedia?.let { fc -> o.put("fcMedia", fc) }
+                .put("id", it.id).put("tipo", it.type).put("inicio", it.startTime).put("fin", it.endTime)
+                .put("duracionSeg", it.durationSec).put("tomadoMl", it.drankMl).put("recomendadoMl", it.recommendedMl)
+            it.avgHeartRate?.let { fc -> o.put("fcMedia", fc) }
             o
         }
     }
 
     // ---------- Clima (último valor, para usarlo sin conexión) ----------
-    fun ultimoClima(): Clima? {
+    fun ultimoClima(): Weather? {
         val texto = prefs.getString(CLIMA, null) ?: return null
         val o = JSONObject(texto)
-        return Clima(o.getDouble("t"), o.getDouble("h"), o.getString("ciudad"), o.getLong("instante"))
+        return Weather(o.getDouble("t"), o.getDouble("h"), o.getString("ciudad"), o.getLong("instante"))
     }
 
-    fun guardarClima(c: Clima) {
-        val o = JSONObject().put("t", c.temperaturaC).put("h", c.humedadPct).put("ciudad", c.ciudad).put("instante", c.instante)
+    fun guardarClima(c: Weather) {
+        val o = JSONObject().put("t", c.temperatureC).put("h", c.humidityPct).put("ciudad", c.city).put("instante", c.timestamp)
         prefs.edit().putString(CLIMA, o.toString()).apply()
     }
 
     // ---------- Sesión activa (sobrevive aunque Android cierre la app) ----------
-    fun sesionActiva(): SesionEnCurso? {
+    fun sesionActiva(): ActiveSession? {
         val texto = prefs.getString(SESION_ACTIVA, null) ?: return null
         val o = JSONObject(texto)
-        return SesionEnCurso(
-            tipo = o.getString("tipo"),
-            inicio = o.getLong("inicio"),
-            proximaAlerta = o.getLong("proximaAlerta"),
-            pausadaDesde = if (o.has("pausadaDesde")) o.getLong("pausadaDesde") else null,
-            pausadoMs = o.optLong("pausadoMs", 0),
-            tomadoMl = o.optInt("tomadoMl", 0),
-            recomendadoMl = o.optInt("recomendadoMl", 0),
-            fcSuma = o.optLong("fcSuma", 0),
-            fcLecturas = o.optInt("fcLecturas", 0),
+        return ActiveSession(
+            type = o.getString("tipo"),
+            startTime = o.getLong("inicio"),
+            nextAlertAt = o.getLong("proximaAlerta"),
+            pausedSince = if (o.has("pausadaDesde")) o.getLong("pausadaDesde") else null,
+            pausedMs = o.optLong("pausadoMs", 0),
+            drankMl = o.optInt("tomadoMl", 0),
+            recommendedMl = o.optInt("recomendadoMl", 0),
+            heartRateSum = o.optLong("fcSuma", 0),
+            heartRateReadings = o.optInt("fcLecturas", 0),
         )
     }
 
-    fun guardarSesionActiva(s: SesionEnCurso?) {
+    fun guardarSesionActiva(s: ActiveSession?) {
         if (s == null) {
             prefs.edit().remove(SESION_ACTIVA).apply()
             return
         }
         val o = JSONObject()
-            .put("tipo", s.tipo).put("inicio", s.inicio).put("proximaAlerta", s.proximaAlerta)
-            .put("pausadoMs", s.pausadoMs).put("tomadoMl", s.tomadoMl).put("recomendadoMl", s.recomendadoMl)
-            .put("fcSuma", s.fcSuma).put("fcLecturas", s.fcLecturas)
-        s.pausadaDesde?.let { o.put("pausadaDesde", it) }
+            .put("tipo", s.type).put("inicio", s.startTime).put("proximaAlerta", s.nextAlertAt)
+            .put("pausadoMs", s.pausedMs).put("tomadoMl", s.drankMl).put("recomendadoMl", s.recommendedMl)
+            .put("fcSuma", s.heartRateSum).put("fcLecturas", s.heartRateReadings)
+        s.pausedSince?.let { o.put("pausadaDesde", it) }
         prefs.edit().putString(SESION_ACTIVA, o.toString()).apply()
     }
 
     // ---------- Alerta pendiente ----------
-    fun alertaPendiente(): AlertaToma? {
+    fun alertaPendiente(): IntakeAlert? {
         val texto = prefs.getString(ALERTA, null) ?: return null
         val o = JSONObject(texto)
-        val razones = o.optJSONArray("razones")
-        return AlertaToma(
+        val reasons = o.optJSONArray("razones")
+        return IntakeAlert(
             ml = if (o.has("ml")) o.getInt("ml") else null,
             factor = Factor(
-                valor = o.optDouble("factor", 1.0),
-                razones = if (razones == null) emptyList() else (0 until razones.length()).map { razones.getString(it) },
+                value = o.optDouble("factor", 1.0),
+                reasons = if (reasons == null) emptyList() else (0 until reasons.length()).map { reasons.getString(it) },
             ),
-            instante = o.optLong("instante", 0),
+            timestamp = o.optLong("instante", 0),
         )
     }
 
-    fun guardarAlerta(a: AlertaToma?) {
+    fun guardarAlerta(a: IntakeAlert?) {
         if (a == null) {
             prefs.edit().remove(ALERTA).apply()
             return
         }
-        val razones = JSONArray()
-        a.factor.razones.forEach { razones.put(it) }
-        val o = JSONObject().put("factor", a.factor.valor).put("razones", razones).put("instante", a.instante)
+        val reasons = JSONArray()
+        a.factor.reasons.forEach { reasons.put(it) }
+        val o = JSONObject().put("factor", a.factor.value).put("razones", reasons).put("instante", a.timestamp)
         a.ml?.let { o.put("ml", it) }
         prefs.edit().putString(ALERTA, o.toString()).apply()
     }
@@ -194,17 +194,17 @@ class Repositorio(contexto: Context) {
     private fun JSONObject.dobleONulo(clave: String): Double? =
         if (has(clave) && !isNull(clave)) getDouble(clave) else null
 
-    private fun JSONObject.aCondiciones() = Condiciones(
-        altitudM = dobleONulo("altitudM"),
-        temperaturaC = dobleONulo("temperaturaC"),
-        humedadPct = dobleONulo("humedadPct"),
+    private fun JSONObject.aCondiciones() = Conditions(
+        altitudeM = dobleONulo("altitudM"),
+        temperatureC = dobleONulo("temperaturaC"),
+        humidityPct = dobleONulo("humedadPct"),
     )
 
-    private fun Condiciones.aJson(): JSONObject {
+    private fun Conditions.aJson(): JSONObject {
         val o = JSONObject()
-        altitudM?.let { o.put("altitudM", it) }
-        temperaturaC?.let { o.put("temperaturaC", it) }
-        humedadPct?.let { o.put("humedadPct", it) }
+        altitudeM?.let { o.put("altitudM", it) }
+        temperatureC?.let { o.put("temperaturaC", it) }
+        humidityPct?.let { o.put("humedadPct", it) }
         return o
     }
 

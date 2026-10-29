@@ -110,7 +110,7 @@ fun BotonRedondo(
 
 /** Fila para cambiar un número con botones − y + (en el reloj no hay teclado cómodo). */
 @Composable
-fun FilaNumero(etiqueta: String, valor: String, onMenos: () -> Unit, onMas: () -> Unit) {
+fun FilaNumero(etiqueta: String, value: String, onMenos: () -> Unit, onMas: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(etiqueta, style = MaterialTheme.typography.caption2, color = Color.LightGray)
         Row(
@@ -118,7 +118,7 @@ fun FilaNumero(etiqueta: String, valor: String, onMenos: () -> Unit, onMas: () -
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             BotonRedondo("−", Colores.Gris, onMenos, descripcion = "Menos")
-            Text(valor, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
+            Text(value, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
             BotonRedondo("+", Colores.Gris, onMas, descripcion = "Más")
         }
     }

@@ -17,7 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import co.edu.ucc.hidrasmart.MainActivity
 import co.edu.ucc.hidrasmart.R
-import co.edu.ucc.hidrasmart.domain.AlertaToma
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
 
 /**
  * Alarmas del sistema y notificación de alerta.
@@ -54,7 +54,7 @@ object Alarmas {
 
     /** Muestra la alerta sobre la esfera, con sonido, vibración y botones de respuesta. */
     @SuppressLint("MissingPermission")
-    fun notificar(contexto: Context, alerta: AlertaToma) {
+    fun notificar(contexto: Context, alerta: IntakeAlert) {
         crearCanal(contexto)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(contexto, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED

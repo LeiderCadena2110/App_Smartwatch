@@ -13,14 +13,14 @@ import co.edu.ucc.hidrasmart.data.ClimaServicio
 import co.edu.ucc.hidrasmart.data.LecturaFc
 import co.edu.ucc.hidrasmart.data.Repositorio
 import co.edu.ucc.hidrasmart.data.Sensores
-import co.edu.ucc.hidrasmart.domain.AlertaToma
-import co.edu.ucc.hidrasmart.domain.CalculadoraHidratacion
-import co.edu.ucc.hidrasmart.domain.Clima
-import co.edu.ucc.hidrasmart.domain.Condiciones
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
+import co.edu.ucc.hidrasmart.domain.HydrationCalculator
+import co.edu.ucc.hidrasmart.domain.Weather
+import co.edu.ucc.hidrasmart.domain.Conditions
 import co.edu.ucc.hidrasmart.domain.Factor
-import co.edu.ucc.hidrasmart.domain.Perfil
-import co.edu.ucc.hidrasmart.domain.PruebaSudoracion
-import co.edu.ucc.hidrasmart.domain.SesionEnCurso
+import co.edu.ucc.hidrasmart.domain.Profile
+import co.edu.ucc.hidrasmart.domain.SweatTest
+import co.edu.ucc.hidrasmart.domain.ActiveSession
 import co.edu.ucc.hidrasmart.ui.aFecha
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -44,13 +44,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var sesiones by mutableStateOf(repo.sesiones())
         private set
-    var clima by mutableStateOf<Clima?>(repo.ultimoClima())
+    var clima by mutableStateOf<Weather?>(repo.ultimoClima())
         private set
     var mensajeClima by mutableStateOf<String?>(null)
         private set
-    var sesion by mutableStateOf<SesionEnCurso?>(repo.sesionActiva())
+    var sesion by mutableStateOf<ActiveSession?>(repo.sesionActiva())
         private set
-    var alerta by mutableStateOf<AlertaToma?>(repo.alertaPendiente())
+    var alerta by mutableStateOf<IntakeAlert?>(repo.alertaPendiente())
         private set
     var fc by mutableStateOf<LecturaFc?>(null)
         private set
@@ -71,7 +71,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val totalHoyMl: Int
         get() {
             val hoy = LocalDate.now()
-            return tomas.filter { it.instante.aFecha() == hoy }.sumOf { it.ml }
+            return tomas.filter { it.timestamp.aFecha() == hoy }.sumOf { it.ml }
         }
 
     init {
@@ -105,7 +105,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- Perfil y prueba de sudoración ----------------
 
-    fun guardarPerfil(p: Perfil) {
+    fun guardarPerfil(p: Profile) {
         repo.guardarPerfil(p)
         perfil = p
         perfilConfigurado = true
@@ -114,11 +114,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Calcula la tasa con la fórmula NATA y la guarda junto con las condiciones de hoy. */
-    fun guardarPrueba(prueba: PruebaSudoracion): Result<Double> = runCatching {
-        val tasa = CalculadoraHidratacion.tasaSudoracion(prueba)
-        val condiciones = condicionesActuales().copy(fcBpm = null)
-        guardarPerfil(perfil.copy(tasaSudoracionLh = tasa, condicionesPrueba = condiciones, pesoKg = prueba.pesoInicialKg))
-        tasa
+    fun guardarPrueba(sweatTest: SweatTest): Result<Double> = runCatching {
+        val rate = HydrationCalculator.sweatRate(sweatTest)
+        val condiciones = condicionesActuales().copy(heartRateBpm = null)
+        guardarPerfil(perfil.copy(sweatRateLh = rate, testConditions = condiciones, weightKg = sweatTest.initialWeightKg))
+        rate
     }
 
     // ---------------- Clima y condiciones ----------------
@@ -131,7 +131,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             try {
-                val c = ClimaServicio.consultar(perfil.ciudad, clave)
+                val c = ClimaServicio.consultar(perfil.city, clave)
                 repo.guardarClima(c)
                 clima = c
                 mensajeClima = null
@@ -141,18 +141,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun condicionesActuales(): Condiciones = Condiciones(
-        altitudM = altitudSensor ?: perfil.altitudHabitualM,
-        temperaturaC = clima?.temperaturaC ?: perfil.temperaturaManualC,
-        humedadPct = clima?.humedadPct ?: perfil.humedadManualPct,
-        fcBpm = fc?.bpm,
+    fun condicionesActuales(): Conditions = Conditions(
+        altitudeM = altitudSensor ?: perfil.usualAltitudeM,
+        temperatureC = clima?.temperatureC ?: perfil.manualTemperatureC,
+        humidityPct = clima?.humidityPct ?: perfil.manualHumidityPct,
+        heartRateBpm = fc?.bpm,
     )
 
     fun factorActual(): Factor =
-        CalculadoraHidratacion.factor(condicionesActuales(), perfil.condicionesPrueba, perfil.edad)
+        HydrationCalculator.factor(condicionesActuales(), perfil.testConditions, perfil.age)
 
-    fun mlPorAlerta(): Int? = perfil.tasaSudoracionLh?.let {
-        CalculadoraHidratacion.mlPorAlerta(it, factorActual().valor, perfil.intervaloMin)
+    fun mlPerAlert(): Int? = perfil.sweatRateLh?.let {
+        HydrationCalculator.mlPerAlert(it, factorActual().value, perfil.intervalMin)
     }
 
     // ---------------- Tomas de agua ----------------
@@ -164,8 +164,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- Entrenamiento ----------------
 
-    fun iniciarSesion(tipo: String) {
-        MotorSesion.iniciar(getApplication<Application>(), tipo)
+    fun iniciarSesion(type: String) {
+        MotorSesion.iniciar(getApplication<Application>(), type)
         recargar() // al instante, sin esperar el aviso de cambios
         actualizarClima()
         encenderSensores()
@@ -176,7 +176,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         recargar()
     }
 
-    fun duracionMs(s: SesionEnCurso): Long = ((s.pausadaDesde ?: ahora) - s.inicio - s.pausadoMs).coerceAtLeast(0)
+    fun duracionMs(s: ActiveSession): Long = ((s.pausedSince ?: ahora) - s.startTime - s.pausedMs).coerceAtLeast(0)
 
     fun yaTome() {
         MotorSesion.yaTome(getApplication<Application>())
@@ -213,7 +213,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             viewModelScope.launch {
                 Sensores.ritmoCardiaco(app).collect { lectura ->
                     fc = lectura
-                    if (sesion?.pausadaDesde == null) {
+                    if (sesion?.pausedSince == null) {
                         fcSumaPendiente += lectura.bpm
                         fcLecturasPendientes++
                     }

@@ -21,7 +21,7 @@ import java.time.LocalDate
 
 @Composable
 fun PantallaHistorial(vm: AppViewModel, abrirDia: (String) -> Unit) {
-    val dias = (vm.tomas.map { it.instante.aFecha() } + vm.sesiones.map { it.inicio.aFecha() })
+    val dias = (vm.tomas.map { it.timestamp.aFecha() } + vm.sesiones.map { it.startTime.aFecha() })
         .distinct()
         .sortedDescending()
         .take(30)
@@ -32,8 +32,8 @@ fun PantallaHistorial(vm: AppViewModel, abrirDia: (String) -> Unit) {
             item { Nota("Aún no hay registros. Empieza registrando una toma.") }
         }
         dias.forEach { dia ->
-            val total = vm.tomas.filter { it.instante.aFecha() == dia }.sumOf { it.ml }
-            val entrenos = vm.sesiones.count { it.inicio.aFecha() == dia }
+            val total = vm.tomas.filter { it.timestamp.aFecha() == dia }.sumOf { it.ml }
+            val entrenos = vm.sesiones.count { it.startTime.aFecha() == dia }
             item {
                 ChipAccion(
                     dia.nombre(), Colores.GrisOscuro, { abrirDia(dia.toString()) },
@@ -47,17 +47,17 @@ fun PantallaHistorial(vm: AppViewModel, abrirDia: (String) -> Unit) {
 @Composable
 fun PantallaDetalleDia(vm: AppViewModel, fecha: String, abrirSesion: (Long) -> Unit) {
     val dia = runCatching { LocalDate.parse(fecha) }.getOrNull() ?: LocalDate.now()
-    val tomas = vm.tomas.filter { it.instante.aFecha() == dia }.sortedByDescending { it.instante }
-    val sesiones = vm.sesiones.filter { it.inicio.aFecha() == dia }.sortedByDescending { it.inicio }
+    val tomas = vm.tomas.filter { it.timestamp.aFecha() == dia }.sortedByDescending { it.timestamp }
+    val sesiones = vm.sesiones.filter { it.startTime.aFecha() == dia }.sortedByDescending { it.startTime }
     val total = tomas.sumOf { it.ml }
 
     Pantalla {
-        item { Titulo(dia.nombre(), "${total.miles()} de ${vm.perfil.metaDiariaMl.miles()} ml") }
+        item { Titulo(dia.nombre(), "${total.miles()} de ${vm.perfil.dailyGoalMl.miles()} ml") }
         sesiones.forEach { s ->
             item {
                 ChipAccion(
-                    s.tipo, Colores.Azul, { abrirSesion(s.id) },
-                    detalle = "${s.inicio.hora()} · ${duracion(s.duracionSeg * 1000)}",
+                    s.type, Colores.Azul, { abrirSesion(s.id) },
+                    detalle = "${s.startTime.hora()} · ${duracion(s.durationSec * 1000)}",
                     icono = Icons.Default.PlayArrow,
                 )
             }
@@ -66,7 +66,7 @@ fun PantallaDetalleDia(vm: AppViewModel, fecha: String, abrirSesion: (Long) -> U
             item { Nota("Tomas") }
         }
         tomas.forEach { t ->
-            item { Text("${t.instante.hora()} · ${t.ml} ml", style = MaterialTheme.typography.body2) }
+            item { Text("${t.timestamp.hora()} · ${t.ml} ml", style = MaterialTheme.typography.body2) }
         }
     }
 }
@@ -79,10 +79,10 @@ fun PantallaDetalleSesion(vm: AppViewModel, id: Long) {
             item { Nota("No se encontró la sesión") }
             return@Pantalla
         }
-        item { Titulo(s.tipo, "${s.inicio.aFecha().nombre()} · ${s.inicio.hora()}") }
-        item { Text(duracion(s.duracionSeg * 1000), style = MaterialTheme.typography.display3) }
-        item { Nota("FC media: ${s.fcMedia?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
-        item { Nota("Tomado: ${s.tomadoMl.miles()} ml", Color.White) }
-        item { Nota("Recomendado: ${s.recomendadoMl.miles()} ml", Color.White) }
+        item { Titulo(s.type, "${s.startTime.aFecha().nombre()} · ${s.startTime.hora()}") }
+        item { Text(duracion(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
+        item { Nota("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
+        item { Nota("Tomado: ${s.drankMl.miles()} ml", Color.White) }
+        item { Nota("Recomendado: ${s.recommendedMl.miles()} ml", Color.White) }
     }
 }

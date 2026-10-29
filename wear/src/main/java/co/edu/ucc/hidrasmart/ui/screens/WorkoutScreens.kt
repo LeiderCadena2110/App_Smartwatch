@@ -26,7 +26,7 @@ import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.alerts.Diagnostico
 import co.edu.ucc.hidrasmart.data.Sensores
-import co.edu.ucc.hidrasmart.domain.AlertaToma
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.BotonRedondo
 import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.Nota
@@ -47,22 +47,22 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
     val pedirPermisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         // Con o sin permisos se puede entrenar: sin sensor la FC es simulada y sin notificaciones
         // la alerta solo se ve con la app abierta
-        tipoPendiente?.let { tipo ->
-            vm.iniciarSesion(tipo)
+        tipoPendiente?.let { type ->
+            vm.iniciarSesion(type)
             iniciado()
         }
     }
 
     Pantalla {
         item { Titulo("Entrenar", "¿Qué vas a hacer?") }
-        TIPOS.forEach { tipo ->
+        TIPOS.forEach { type ->
             item {
-                ChipAccion(tipo, Colores.Azul, {
+                ChipAccion(type, Colores.Azul, {
                     if (Sensores.tienePermisos(contexto)) {
-                        vm.iniciarSesion(tipo)
+                        vm.iniciarSesion(type)
                         iniciado()
                     } else {
-                        tipoPendiente = tipo
+                        tipoPendiente = type
                         pedirPermisos.launch(Sensores.permisosEntrenamiento())
                     }
                 })
@@ -73,7 +73,7 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
         } else {
             item { Nota("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", Colores.Ambar) }
         }
-        if (vm.perfil.tasaSudoracionLh == null) {
+        if (vm.perfil.sweatRateLh == null) {
             item { Nota("Sin prueba de sudoración las alertas solo te recordarán tomar agua según tu sed.") }
         }
     }
@@ -92,14 +92,14 @@ fun PantallaSesion(
         LaunchedEffect(Unit) { salir() }
         return
     }
-    val pausada = s.pausadaDesde != null
-    val faltaMs = (s.proximaAlerta - vm.ahora).coerceAtLeast(0)
-    val ml = vm.mlPorAlerta()
+    val pausada = s.pausedSince != null
+    val faltaMs = (s.nextAlertAt - vm.ahora).coerceAtLeast(0)
+    val ml = vm.mlPerAlert()
     val condiciones = vm.condicionesActuales()
     val lectura = vm.fc
 
     Pantalla {
-        item { Nota(if (pausada) "${s.tipo} · EN PAUSA" else s.tipo, if (pausada) Colores.Ambar else Color.LightGray) }
+        item { Nota(if (pausada) "${s.type} · EN PAUSA" else s.type, if (pausada) Colores.Ambar else Color.LightGray) }
         item { Text(duracion(vm.duracionMs(s)), style = MaterialTheme.typography.display3) }
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -110,7 +110,7 @@ fun PantallaSesion(
                 )
             }
         }
-        item { Text("Tomado: ${s.tomadoMl.miles()} ml", style = MaterialTheme.typography.body2) }
+        item { Text("Tomado: ${s.drankMl.miles()} ml", style = MaterialTheme.typography.body2) }
         item {
             Nota(
                 if (pausada) "Alertas en pausa"
@@ -121,8 +121,8 @@ fun PantallaSesion(
         }
         item {
             Nota(
-                "${condiciones.temperaturaC?.dec() ?: "--"} °C · ${condiciones.humedadPct?.dec(0) ?: "--"} % · " +
-                    "${condiciones.altitudM?.dec(0) ?: "--"} m",
+                "${condiciones.temperatureC?.dec() ?: "--"} °C · ${condiciones.humidityPct?.dec(0) ?: "--"} % · " +
+                    "${condiciones.altitudeM?.dec(0) ?: "--"} m",
             )
         }
         // Si la alerta se cerró deslizando, queda pendiente aquí
@@ -168,7 +168,7 @@ fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
 
 /** Contenido de la alerta; lo usan la app y la pantalla que sale sobre la esfera. */
 @Composable
-fun ContenidoAlerta(alerta: AlertaToma, onYaTome: () -> Unit, onPosponer: () -> Unit) {
+fun ContenidoAlerta(alerta: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> Unit) {
     Pantalla {
         item { Titulo("¡Hora de hidratarte!") }
         item {
@@ -178,8 +178,8 @@ fun ContenidoAlerta(alerta: AlertaToma, onYaTome: () -> Unit, onPosponer: () -> 
                 color = Colores.AguaClara,
             )
         }
-        if (alerta.factor.razones.isNotEmpty()) {
-            item { Nota("Ajuste ×${alerta.factor.valor.dec()}: ${alerta.factor.razones.joinToString(", ")}") }
+        if (alerta.factor.reasons.isNotEmpty()) {
+            item { Nota("Ajuste ×${alerta.factor.value.dec()}: ${alerta.factor.reasons.joinToString(", ")}") }
         }
         if (alerta.ml == null) {
             item { Nota("Haz la prueba de sudoración en Perfil para recibir una cantidad exacta.") }
@@ -212,14 +212,14 @@ fun PantallaConfirmarFin(terminar: () -> Unit, cancelar: () -> Unit) {
 fun PantallaResumen(vm: AppViewModel, id: Long, listo: () -> Unit) {
     val s = vm.sesiones.firstOrNull { it.id == id }
     Pantalla {
-        item { Titulo("Resumen", s?.tipo) }
+        item { Titulo("Resumen", s?.type) }
         if (s != null) {
-            item { Text(duracion(s.duracionSeg * 1000), style = MaterialTheme.typography.display3) }
-            item { Nota("FC media: ${s.fcMedia?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
+            item { Text(duracion(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
+            item { Nota("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
             item {
                 Nota(
-                    if (s.recomendadoMl > 0) "Tomado ${s.tomadoMl.miles()} ml de ${s.recomendadoMl.miles()} ml recomendados"
-                    else "Tomado ${s.tomadoMl.miles()} ml",
+                    if (s.recommendedMl > 0) "Tomado ${s.drankMl.miles()} ml de ${s.recommendedMl.miles()} ml recomendados"
+                    else "Tomado ${s.drankMl.miles()} ml",
                     Color.White,
                 )
             }

@@ -4,82 +4,82 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class CalculadoraHidratacionTest {
+class HydrationCalculatorTest {
 
-    private val prueba = PruebaSudoracion(pesoInicialKg = 70.0, pesoFinalKg = 69.2, liquidoMl = 500, orinaMl = 0, duracionMin = 60)
+    private val sweatTest = SweatTest(initialWeightKg = 70.0, finalWeightKg = 69.2, fluidMl = 500, urineMl = 0, durationMin = 60)
 
     @Test
-    fun tasaSudoracion_ejemploNata() {
+    fun sweatRate_nataExample() {
         // (70 − 69,2) + 0,5 − 0 = 1,3 L en 1 h
-        assertEquals(1.3, CalculadoraHidratacion.tasaSudoracion(prueba), 0.0001)
+        assertEquals(1.3, HydrationCalculator.sweatRate(sweatTest), 0.0001)
     }
 
     @Test
-    fun tasaSudoracion_restaLaOrina() {
-        val conOrina = prueba.copy(orinaMl = 300, duracionMin = 30)
+    fun sweatRate_subtractsUrine() {
+        val withUrine = sweatTest.copy(urineMl = 300, durationMin = 30)
         // (0,8 + 0,5 − 0,3) / 0,5 h = 2,0 L/h
-        assertEquals(2.0, CalculadoraHidratacion.tasaSudoracion(conOrina), 0.0001)
+        assertEquals(2.0, HydrationCalculator.sweatRate(withUrine), 0.0001)
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun tasaSudoracion_rechazaDatosImposibles() {
-        CalculadoraHidratacion.tasaSudoracion(prueba.copy(pesoFinalKg = 75.0, liquidoMl = 0))
+    fun sweatRate_rejectsImpossibleData() {
+        HydrationCalculator.sweatRate(sweatTest.copy(finalWeightKg = 75.0, fluidMl = 0))
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun tasaSudoracion_rechazaDuracionCero() {
-        CalculadoraHidratacion.tasaSudoracion(prueba.copy(duracionMin = 0))
+    fun sweatRate_rejectsZeroDuration() {
+        HydrationCalculator.sweatRate(sweatTest.copy(durationMin = 0))
     }
 
     @Test
-    fun perdidaDePeso_enPorcentaje() {
-        assertEquals(1.142857, CalculadoraHidratacion.porcentajePerdidaPeso(prueba), 0.0001)
+    fun weightLoss_inPercent() {
+        assertEquals(1.142857, HydrationCalculator.weightLossPercent(sweatTest), 0.0001)
     }
 
     @Test
-    fun mlPorAlerta_sinAjuste() {
+    fun mlPerAlert_withoutAdjustment() {
         // 1,3 L/h × 1 × 1000 × 15/60 = 325 → 330 (redondeo a 10 ml)
-        assertEquals(330, CalculadoraHidratacion.mlPorAlerta(1.3, 1.0, 15))
+        assertEquals(330, HydrationCalculator.mlPerAlert(1.3, 1.0, 15))
     }
 
     @Test
-    fun mlPorAlerta_conFactor() {
+    fun mlPerAlert_withFactor() {
         // 0,8 L/h × 1,2 × 1000 × 20/60 = 320
-        assertEquals(320, CalculadoraHidratacion.mlPorAlerta(0.8, 1.2, 20))
+        assertEquals(320, HydrationCalculator.mlPerAlert(0.8, 1.2, 20))
     }
 
     @Test
-    fun factor_esUnoEnLasMismasCondiciones() {
-        val c = Condiciones(altitudM = 2527.0, temperaturaC = 14.0, humedadPct = 75.0, fcBpm = 120)
-        assertEquals(1.0, CalculadoraHidratacion.factor(c, c, edad = 22).valor, 0.0001)
+    fun factor_isOneInSameConditions() {
+        val c = Conditions(altitudeM = 2527.0, temperatureC = 14.0, humidityPct = 75.0, heartRateBpm = 120)
+        assertEquals(1.0, HydrationCalculator.factor(c, c, age = 22).value, 0.0001)
     }
 
     @Test
-    fun factor_noSeActivaSoloPorEstarEnPasto() {
+    fun factor_notTriggeredJustByBeingInPasto() {
         // La prueba se hizo en Pasto y se entrena en Pasto: la altitud alta no suma
-        val pasto = Condiciones(altitudM = 2527.0, temperaturaC = 14.0, humedadPct = 60.0)
-        assertEquals(1.0, CalculadoraHidratacion.factor(pasto, pasto, edad = 22).valor, 0.0001)
+        val pasto = Conditions(altitudeM = 2527.0, temperatureC = 14.0, humidityPct = 60.0)
+        assertEquals(1.0, HydrationCalculator.factor(pasto, pasto, age = 22).value, 0.0001)
     }
 
     @Test
-    fun factor_sumaPorCadaCondicionYTieneTope() {
-        val pruebaCond = Condiciones(altitudM = 500.0, temperaturaC = 15.0, humedadPct = 50.0)
-        val dura = Condiciones(altitudM = 2600.0, temperaturaC = 25.0, humedadPct = 85.0, fcBpm = 190)
-        val f = CalculadoraHidratacion.factor(dura, pruebaCond, edad = 22)
-        assertEquals(1.3, f.valor, 0.0001) // 4 razones pero tope 1,3
-        assertEquals(4, f.razones.size)
+    fun factor_addsPerConditionAndIsCapped() {
+        val testConds = Conditions(altitudeM = 500.0, temperatureC = 15.0, humidityPct = 50.0)
+        val harsh = Conditions(altitudeM = 2600.0, temperatureC = 25.0, humidityPct = 85.0, heartRateBpm = 190)
+        val f = HydrationCalculator.factor(harsh, testConds, age = 22)
+        assertEquals(1.3, f.value, 0.0001) // 4 razones pero tope 1,3
+        assertEquals(4, f.reasons.size)
     }
 
     @Test
-    fun factor_humedad() {
-        val pruebaSeca = Condiciones(humedadPct = 60.0)
-        val f = CalculadoraHidratacion.factor(Condiciones(humedadPct = 80.0), pruebaSeca, edad = 22)
-        assertEquals(1.1, f.valor, 0.0001)
-        assertTrue(f.razones.first().contains("Humedad"))
+    fun factor_humidity() {
+        val dryTest = Conditions(humidityPct = 60.0)
+        val f = HydrationCalculator.factor(Conditions(humidityPct = 80.0), dryTest, age = 22)
+        assertEquals(1.1, f.value, 0.0001)
+        assertTrue(f.reasons.first().contains("Humedad"))
     }
 
     @Test
-    fun fcMaxima_clasica() {
-        assertEquals(198, CalculadoraHidratacion.fcMaxima(22))
+    fun maxHeartRate_classic() {
+        assertEquals(198, HydrationCalculator.maxHeartRate(22))
     }
 }

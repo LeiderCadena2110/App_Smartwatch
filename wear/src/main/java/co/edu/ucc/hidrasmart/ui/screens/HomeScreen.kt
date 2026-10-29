@@ -28,7 +28,7 @@ import co.edu.ucc.hidrasmart.ui.theme.Colores
 @Composable
 fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
     val total = vm.totalHoyMl
-    val meta = vm.perfil.metaDiariaMl
+    val meta = vm.perfil.dailyGoalMl
     val sesion = vm.sesion
 
     Pantalla {
@@ -41,7 +41,7 @@ fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
             item {
                 ChipAccion(
                     "Volver a la sesión", Colores.Azul, { ir(Rutas.SESION) },
-                    detalle = "${sesion.tipo} · ${duracion(vm.duracionMs(sesion))}",
+                    detalle = "${sesion.type} · ${duracion(vm.duracionMs(sesion))}",
                     icono = Icons.Default.PlayArrow,
                 )
             }

@@ -19,9 +19,9 @@ import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
 import co.edu.ucc.hidrasmart.alerts.Diagnostico
 import co.edu.ucc.hidrasmart.data.Sensores
-import co.edu.ucc.hidrasmart.domain.CalculadoraHidratacion
-import co.edu.ucc.hidrasmart.domain.Perfil
-import co.edu.ucc.hidrasmart.domain.PruebaSudoracion
+import co.edu.ucc.hidrasmart.domain.HydrationCalculator
+import co.edu.ucc.hidrasmart.domain.Profile
+import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.FilaNumero
 import co.edu.ucc.hidrasmart.ui.Nota
@@ -49,27 +49,27 @@ enum class CampoPerfil(
     TEMPERATURA("Temperatura manual", "°C", 1.0, -10.0, 45.0, 0),
     HUMEDAD("Humedad manual", "%", 5.0, 0.0, 100.0, 0);
 
-    fun leer(p: Perfil): Double = when (this) {
-        PESO -> p.pesoKg
-        EDAD -> p.edad.toDouble()
-        META -> p.metaDiariaMl.toDouble()
-        INTERVALO -> p.intervaloMin.toDouble()
-        ALTITUD -> p.altitudHabitualM
-        TEMPERATURA -> p.temperaturaManualC
-        HUMEDAD -> p.humedadManualPct
+    fun leer(p: Profile): Double = when (this) {
+        PESO -> p.weightKg
+        EDAD -> p.age.toDouble()
+        META -> p.dailyGoalMl.toDouble()
+        INTERVALO -> p.intervalMin.toDouble()
+        ALTITUD -> p.usualAltitudeM
+        TEMPERATURA -> p.manualTemperatureC
+        HUMEDAD -> p.manualHumidityPct
     }
 
-    fun escribir(p: Perfil, v: Double): Perfil = when (this) {
-        PESO -> p.copy(pesoKg = v)
-        EDAD -> p.copy(edad = v.roundToInt())
-        META -> p.copy(metaDiariaMl = v.roundToInt())
-        INTERVALO -> p.copy(intervaloMin = v.roundToInt())
-        ALTITUD -> p.copy(altitudHabitualM = v)
-        TEMPERATURA -> p.copy(temperaturaManualC = v)
-        HUMEDAD -> p.copy(humedadManualPct = v)
+    fun escribir(p: Profile, v: Double): Profile = when (this) {
+        PESO -> p.copy(weightKg = v)
+        EDAD -> p.copy(age = v.roundToInt())
+        META -> p.copy(dailyGoalMl = v.roundToInt())
+        INTERVALO -> p.copy(intervalMin = v.roundToInt())
+        ALTITUD -> p.copy(usualAltitudeM = v)
+        TEMPERATURA -> p.copy(manualTemperatureC = v)
+        HUMEDAD -> p.copy(manualHumidityPct = v)
     }
 
-    fun texto(p: Perfil): String = "${leer(p).dec(decimales)} $unidad"
+    fun texto(p: Profile): String = "${leer(p).dec(decimales)} $unidad"
 }
 
 private val CIUDADES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", "Medellin,CO", "Cali,CO")
@@ -109,7 +109,7 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         item {
             ChipAccion(
                 "Prueba de sudoración", Colores.Agua, abrirPrueba,
-                detalle = p.tasaSudoracionLh?.let { "${it.dec(2)} L/h" } ?: "Sin hacer",
+                detalle = p.sweatRateLh?.let { "${it.dec(2)} L/h" } ?: "Sin hacer",
             )
         }
         listOf(CampoPerfil.PESO, CampoPerfil.EDAD, CampoPerfil.META, CampoPerfil.INTERVALO).forEach { campo ->
@@ -117,15 +117,15 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         }
         item {
             ChipAccion("Ciudad del clima", Colores.GrisOscuro, {
-                val siguiente = CIUDADES[(CIUDADES.indexOf(p.ciudad) + 1) % CIUDADES.size]
-                vm.guardarPerfil(p.copy(ciudad = siguiente))
+                val siguiente = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
+                vm.guardarPerfil(p.copy(city = siguiente))
                 vm.actualizarClima()
-            }, detalle = p.ciudad.substringBefore(","))
+            }, detalle = p.city.substringBefore(","))
         }
         val clima = vm.clima
         item {
             Nota(
-                if (clima != null) "Clima: ${clima.temperaturaC.dec()} °C · ${clima.humedadPct.dec(0)} %"
+                if (clima != null) "Clima: ${clima.temperatureC.dec()} °C · ${clima.humidityPct.dec(0)} %"
                 else vm.mensajeClima ?: "Clima sin consultar",
             )
         }
@@ -178,17 +178,17 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
 
 @Composable
 fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit) {
-    var valor by rememberSaveable { mutableDoubleStateOf(campo.leer(vm.perfil)) }
+    var value by rememberSaveable { mutableDoubleStateOf(campo.leer(vm.perfil)) }
     fun ajustar(delta: Double) {
-        val nuevo = ((valor + delta) * 10).roundToInt() / 10.0
-        valor = nuevo.coerceIn(campo.minimo, campo.maximo)
+        val nuevo = ((value + delta) * 10).roundToInt() / 10.0
+        value = nuevo.coerceIn(campo.minimo, campo.maximo)
     }
     Pantalla {
         item { Titulo(campo.titulo) }
-        item { FilaNumero(campo.unidad, valor.dec(campo.decimales), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
+        item { FilaNumero(campo.unidad, value.dec(campo.decimales), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
         item {
             ChipAccion("Guardar", Colores.Verde, {
-                vm.guardarPerfil(campo.escribir(vm.perfil, valor))
+                vm.guardarPerfil(campo.escribir(vm.perfil, value))
                 listo()
             })
         }
@@ -201,8 +201,8 @@ fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit)
  */
 @Composable
 fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
-    var pesoInicial by rememberSaveable { mutableDoubleStateOf(vm.perfil.pesoKg) }
-    var pesoFinal by rememberSaveable { mutableDoubleStateOf(vm.perfil.pesoKg - 0.5) }
+    var pesoInicial by rememberSaveable { mutableDoubleStateOf(vm.perfil.weightKg) }
+    var pesoFinal by rememberSaveable { mutableDoubleStateOf(vm.perfil.weightKg - 0.5) }
     var liquido by rememberSaveable { mutableIntStateOf(0) }
     var orina by rememberSaveable { mutableIntStateOf(0) }
     var minutos by rememberSaveable { mutableIntStateOf(60) }
@@ -226,12 +226,12 @@ fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
         item {
             if (!guardada) {
                 ChipAccion("Calcular y guardar", Colores.Verde, {
-                    val prueba = PruebaSudoracion(pesoInicial, pesoFinal, liquido, orina, minutos)
-                    vm.guardarPrueba(prueba)
-                        .onSuccess { tasa ->
-                            val perdida = CalculadoraHidratacion.porcentajePerdidaPeso(prueba)
+                    val sweatTest = SweatTest(pesoInicial, pesoFinal, liquido, orina, minutos)
+                    vm.guardarPrueba(sweatTest)
+                        .onSuccess { rate ->
+                            val perdida = HydrationCalculator.weightLossPercent(sweatTest)
                             guardada = true
-                            mensaje = "Tasa: ${tasa.dec(2)} L/h. Perdiste ${perdida.dec(1)} % del peso" +
+                            mensaje = "Tasa: ${rate.dec(2)} L/h. Perdiste ${perdida.dec(1)} % del peso" +
                                 if (perdida >= 2.0) " (NATA recomienda menos del 2 %)" else ""
                         }
                         .onFailure { mensaje = it.message ?: "Revisa los datos" }
