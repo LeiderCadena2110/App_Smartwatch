@@ -3,6 +3,7 @@ package co.edu.ucc.hidrasmart.mobile.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,12 +23,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import co.edu.ucc.hidrasmart.mobile.MobileViewModel
+import co.edu.ucc.hidrasmart.mobile.ui.screens.CoachScreen
 import co.edu.ucc.hidrasmart.mobile.ui.screens.HomeScreen
 import co.edu.ucc.hidrasmart.mobile.ui.theme.HidraSmartMobileTheme
 
 /** Pestañas de la barra inferior. */
 enum class Tab(val route: String, val label: String, val icon: ImageVector) {
     HOME("home", "Inicio", Icons.Default.Home),
+    COACH("coach", "Coach IA", Icons.Default.Star),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +57,8 @@ fun MobileApp(vm: MobileViewModel = viewModel()) {
             },
         ) { padding ->
             NavHost(nav, startDestination = Tab.HOME.route, modifier = Modifier.padding(padding)) {
-                composable(Tab.HOME.route) { HomeScreen(vm, onOpenCoach = { nav.goTo(Tab.HOME) }) }
+                composable(Tab.HOME.route) { HomeScreen(vm, onOpenCoach = { nav.goTo(Tab.COACH) }) }
+                composable(Tab.COACH.route) { CoachScreen(vm) }
             }
         }
     }
