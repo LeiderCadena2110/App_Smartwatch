@@ -21,7 +21,7 @@ import co.edu.ucc.hidrasmart.domain.Factor
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.domain.ActiveSession
-import co.edu.ucc.hidrasmart.ui.aFecha
+import co.edu.ucc.hidrasmart.ui.toLocalDate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -71,7 +71,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val totalHoyMl: Int
         get() {
             val hoy = LocalDate.now()
-            return intakes.filter { it.timestamp.aFecha() == hoy }.sumOf { it.ml }
+            return intakes.filter { it.timestamp.toLocalDate() == hoy }.sumOf { it.ml }
         }
 
     init {

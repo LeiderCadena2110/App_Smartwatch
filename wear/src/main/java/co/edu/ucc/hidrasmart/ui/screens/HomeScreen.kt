@@ -19,11 +19,11 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.ui.ChipAccion
-import co.edu.ucc.hidrasmart.ui.Pantalla
-import co.edu.ucc.hidrasmart.ui.duracion
-import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.formatDuration
+import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 @Composable
 fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
@@ -31,27 +31,27 @@ fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
     val meta = vm.profile.dailyGoalMl
     val session = vm.session
 
-    Pantalla {
+    WearScreen {
         item { AnilloProgreso(total, meta) }
 
         if (!vm.isProfileConfigured) {
-            item { ChipAccion("Configura tu perfil", Colores.Ambar, { ir(Rutas.PROFILE) }, icono = Icons.Default.Person) }
+            item { ActionChip("Configura tu perfil", AppColors.Amber, { ir(Rutas.PROFILE) }, icon = Icons.Default.Person) }
         }
         if (session != null) {
             item {
-                ChipAccion(
-                    "Volver a la sesión", Colores.Azul, { ir(Rutas.SESION) },
-                    detalle = "${session.type} · ${duracion(vm.duracionMs(session))}",
-                    icono = Icons.Default.PlayArrow,
+                ActionChip(
+                    "Volver a la sesión", AppColors.Blue, { ir(Rutas.SESION) },
+                    detail = "${session.type} · ${formatDuration(vm.duracionMs(session))}",
+                    icon = Icons.Default.PlayArrow,
                 )
             }
         }
-        item { ChipAccion("Registrar toma", Colores.Agua, { ir(Rutas.REGISTRAR) }, icono = Icons.Default.Add) }
+        item { ActionChip("Registrar toma", AppColors.Water, { ir(Rutas.REGISTRAR) }, icon = Icons.Default.Add) }
         if (session == null) {
-            item { ChipAccion("Entrenar", Colores.Azul, { ir(Rutas.TIPO) }, icono = Icons.Default.PlayArrow) }
+            item { ActionChip("Entrenar", AppColors.Blue, { ir(Rutas.TIPO) }, icon = Icons.Default.PlayArrow) }
         }
-        item { ChipAccion("Historial", Colores.GrisOscuro, { ir(Rutas.HISTORIAL) }, icono = Icons.Default.DateRange) }
-        item { ChipAccion("Perfil y ajustes", Colores.GrisOscuro, { ir(Rutas.PROFILE) }, icono = Icons.Default.Settings) }
+        item { ActionChip("Historial", AppColors.DarkGray, { ir(Rutas.HISTORIAL) }, icon = Icons.Default.DateRange) }
+        item { ActionChip("Perfil y ajustes", AppColors.DarkGray, { ir(Rutas.PROFILE) }, icon = Icons.Default.Settings) }
     }
 }
 
@@ -63,13 +63,13 @@ private fun AnilloProgreso(total: Int, meta: Int) {
         CircularProgressIndicator(
             progress = progreso,
             modifier = Modifier.fillMaxSize(),
-            indicatorColor = Colores.AguaClara,
-            trackColor = Colores.GrisOscuro,
+            indicatorColor = AppColors.LightWater,
+            trackColor = AppColors.DarkGray,
             strokeWidth = 8.dp,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${total.miles()} ml", style = MaterialTheme.typography.title2)
-            Text("de ${meta.miles()} ml", style = MaterialTheme.typography.caption2, color = Color.LightGray)
+            Text("${total.withThousands()} ml", style = MaterialTheme.typography.title2)
+            Text("de ${meta.withThousands()} ml", style = MaterialTheme.typography.caption2, color = Color.LightGray)
         }
     }
 }

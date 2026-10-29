@@ -35,49 +35,49 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 /** Estructura común de cada pantalla: hora arriba, lista que se escala en los bordes y barra de posición. */
 @Composable
-fun Pantalla(
-    estado: ScalingLazyListState = rememberScalingLazyListState(),
-    contenido: ScalingLazyListScope.() -> Unit,
+fun WearScreen(
+    listState: ScalingLazyListState = rememberScalingLazyListState(),
+    content: ScalingLazyListScope.() -> Unit,
 ) {
     Scaffold(
         timeText = { TimeText() },
         vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
-        positionIndicator = { PositionIndicator(scalingLazyListState = estado) },
+        positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
     ) {
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
-            state = estado,
-            content = contenido,
+            state = listState,
+            content = content,
         )
     }
 }
 
 /** Chip de ancho completo (52 dp de alto) con el color de su acción. */
 @Composable
-fun ChipAccion(
+fun ActionChip(
     text: String,
     color: Color,
     onClick: () -> Unit,
-    detalle: String? = null,
-    icono: ImageVector? = null,
-    habilitado: Boolean = true,
+    detail: String? = null,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
 ) {
     Chip(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        enabled = habilitado,
+        enabled = enabled,
         label = { Text(text, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-        secondaryLabel = if (detalle != null) {
-            { Text(detalle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        secondaryLabel = if (detail != null) {
+            { Text(detail, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         } else {
             null
         },
-        icon = if (icono != null) {
-            { Icon(icono, contentDescription = null, modifier = Modifier.size(ChipDefaults.IconSize)) }
+        icon = if (icon != null) {
+            { Icon(icon, contentDescription = null, modifier = Modifier.size(ChipDefaults.IconSize)) }
         } else {
             null
         },
@@ -92,16 +92,16 @@ fun ChipAccion(
 
 /** Botón redondo con texto (por ejemplo "+" o "−"). Mínimo 48 dp, el mínimo táctil de Wear OS. */
 @Composable
-fun BotonRedondo(
+fun RoundButton(
     text: String,
     color: Color,
     onClick: () -> Unit,
-    tamano: Dp = ButtonDefaults.SmallButtonSize,
-    descripcion: String = text,
+    buttonSize: Dp = ButtonDefaults.SmallButtonSize,
+    description: String = text,
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.size(tamano).semantics { contentDescription = descripcion },
+        modifier = Modifier.size(buttonSize).semantics { contentDescription = description },
         colors = ButtonDefaults.primaryButtonColors(backgroundColor = color, contentColor = Color.White),
     ) {
         Text(text, fontSize = 20.sp)
@@ -110,34 +110,34 @@ fun BotonRedondo(
 
 /** Fila para cambiar un número con botones − y + (en el reloj no hay teclado cómodo). */
 @Composable
-fun FilaNumero(etiqueta: String, value: String, onMenos: () -> Unit, onMas: () -> Unit) {
+fun NumberStepper(label: String, value: String, onDecrease: () -> Unit, onIncrease: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(etiqueta, style = MaterialTheme.typography.caption2, color = Color.LightGray)
+        Text(label, style = MaterialTheme.typography.caption2, color = Color.LightGray)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            BotonRedondo("−", Colores.Gris, onMenos, descripcion = "Menos")
+            RoundButton("−", AppColors.Gray, onDecrease, description = "Menos")
             Text(value, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
-            BotonRedondo("+", Colores.Gris, onMas, descripcion = "Más")
+            RoundButton("+", AppColors.Gray, onIncrease, description = "Más")
         }
     }
 }
 
 /** Título centrado para la parte de arriba de una lista. */
 @Composable
-fun Titulo(text: String, subtitulo: String? = null) {
+fun ScreenTitle(text: String, subtitle: String? = null) {
     Column(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
-        if (subtitulo != null) {
-            Text(subtitulo, style = MaterialTheme.typography.caption2, color = Color.LightGray, textAlign = TextAlign.Center)
+        if (subtitle != null) {
+            Text(subtitle, style = MaterialTheme.typography.caption2, color = Color.LightGray, textAlign = TextAlign.Center)
         }
     }
 }
 
 /** Texto informativo pequeño y centrado. */
 @Composable
-fun Nota(text: String, color: Color = Color.LightGray) {
+fun Note(text: String, color: Color = Color.LightGray) {
     Text(
         text,
         modifier = Modifier.fillMaxWidth(),

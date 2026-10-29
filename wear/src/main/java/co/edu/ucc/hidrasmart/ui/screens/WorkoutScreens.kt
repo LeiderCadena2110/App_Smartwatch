@@ -27,15 +27,15 @@ import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
 import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
-import co.edu.ucc.hidrasmart.ui.BotonRedondo
-import co.edu.ucc.hidrasmart.ui.ChipAccion
-import co.edu.ucc.hidrasmart.ui.Nota
-import co.edu.ucc.hidrasmart.ui.Pantalla
-import co.edu.ucc.hidrasmart.ui.Titulo
-import co.edu.ucc.hidrasmart.ui.dec
-import co.edu.ucc.hidrasmart.ui.duracion
-import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.RoundButton
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.Note
+import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.toFixed
+import co.edu.ucc.hidrasmart.ui.formatDuration
+import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 private val TIPOS = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
 
@@ -53,11 +53,11 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
         }
     }
 
-    Pantalla {
-        item { Titulo("Entrenar", "¿Qué vas a hacer?") }
+    WearScreen {
+        item { ScreenTitle("Entrenar", "¿Qué vas a hacer?") }
         TIPOS.forEach { type ->
             item {
-                ChipAccion(type, Colores.Azul, {
+                ActionChip(type, AppColors.Blue, {
                     if (Sensors.hasPermissions(contexto)) {
                         vm.iniciarSesion(type)
                         iniciado()
@@ -69,12 +69,12 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
             }
         }
         if (AlertDiagnostics.allGood(contexto)) {
-            item { Nota("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
+            item { Note("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
         } else {
-            item { Nota("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", Colores.Ambar) }
+            item { Note("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", AppColors.Amber) }
         }
         if (vm.profile.sweatRateLh == null) {
-            item { Nota("Sin prueba de sudoración las alertas solo te recordarán tomar agua según tu sed.") }
+            item { Note("Sin prueba de sudoración las alertas solo te recordarán tomar agua según tu sed.") }
         }
     }
 }
@@ -98,47 +98,47 @@ fun PantallaSesion(
     val condiciones = vm.condicionesActuales()
     val lectura = vm.fc
 
-    Pantalla {
-        item { Nota(if (pausada) "${s.type} · EN PAUSA" else s.type, if (pausada) Colores.Ambar else Color.LightGray) }
-        item { Text(duracion(vm.duracionMs(s)), style = MaterialTheme.typography.display3) }
+    WearScreen {
+        item { Note(if (pausada) "${s.type} · EN PAUSA" else s.type, if (pausada) AppColors.Amber else Color.LightGray) }
+        item { Text(formatDuration(vm.duracionMs(s)), style = MaterialTheme.typography.display3) }
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Icon(Icons.Default.Favorite, contentDescription = "Frecuencia cardíaca", tint = Colores.Rojo)
+                Icon(Icons.Default.Favorite, contentDescription = "Frecuencia cardíaca", tint = AppColors.Red)
                 Text(
                     if (lectura != null) "${lectura.bpm} lpm${if (lectura.simulated) " (simulada)" else ""}" else "-- lpm",
                     style = MaterialTheme.typography.body1,
                 )
             }
         }
-        item { Text("Tomado: ${s.drankMl.miles()} ml", style = MaterialTheme.typography.body2) }
+        item { Text("Tomado: ${s.drankMl.withThousands()} ml", style = MaterialTheme.typography.body2) }
         item {
-            Nota(
+            Note(
                 if (pausada) "Alertas en pausa"
-                else if (ml != null) "Próxima toma en ${duracion(faltaMs)} · ~$ml ml"
-                else "Recordatorio en ${duracion(faltaMs)}",
+                else if (ml != null) "Próxima toma en ${formatDuration(faltaMs)} · ~$ml ml"
+                else "Recordatorio en ${formatDuration(faltaMs)}",
                 Color.White,
             )
         }
         item {
-            Nota(
-                "${condiciones.temperatureC?.dec() ?: "--"} °C · ${condiciones.humidityPct?.dec(0) ?: "--"} % · " +
-                    "${condiciones.altitudeM?.dec(0) ?: "--"} m",
+            Note(
+                "${condiciones.temperatureC?.toFixed() ?: "--"} °C · ${condiciones.humidityPct?.toFixed(0) ?: "--"} % · " +
+                    "${condiciones.altitudeM?.toFixed(0) ?: "--"} m",
             )
         }
         // Si la alerta se cerró deslizando, queda pendiente aquí
         if (vm.alert != null) {
-            item { ChipAccion("Responder alerta", Colores.Verde, abrirAlerta) }
+            item { ActionChip("Responder alerta", AppColors.Green, abrirAlerta) }
         }
-        item { ChipAccion("Registrar toma", Colores.Agua, registrar, icono = Icons.Default.Add) }
+        item { ActionChip("Registrar toma", AppColors.Water, registrar, icon = Icons.Default.Add) }
         item {
-            ChipAccion(if (pausada) "Reanudar" else "Pausar", if (pausada) Colores.Azul else Colores.Ambar, vm::togglePause)
+            ActionChip(if (pausada) "Reanudar" else "Pausar", if (pausada) AppColors.Blue else AppColors.Amber, vm::togglePause)
         }
-        item { ChipAccion("Terminar", Colores.Rojo, end) }
+        item { ActionChip("Terminar", AppColors.Red, end) }
         if (!pausada && vm.alert == null) {
             item {
-                ChipAccion(
-                    "Probar alarma (10 s)", Colores.Gris, vm::probarAlarma,
-                    detalle = "Sal a la esfera y espera",
+                ActionChip(
+                    "Probar alarma (10 s)", AppColors.Gray, vm::probarAlarma,
+                    detail = "Sal a la esfera y espera",
                 )
             }
         }
@@ -169,31 +169,31 @@ fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
 /** Contenido de la alerta; lo usan la app y la pantalla que sale sobre la esfera. */
 @Composable
 fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> Unit) {
-    Pantalla {
-        item { Titulo("¡Hora de hidratarte!") }
+    WearScreen {
+        item { ScreenTitle("¡Hora de hidratarte!") }
         item {
             Text(
                 if (alert.ml != null) "${alert.ml} ml" else "Toma según tu sed",
                 style = if (alert.ml != null) MaterialTheme.typography.display2 else MaterialTheme.typography.title2,
-                color = Colores.AguaClara,
+                color = AppColors.LightWater,
             )
         }
         if (alert.factor.reasons.isNotEmpty()) {
-            item { Nota("Ajuste ×${alert.factor.value.dec()}: ${alert.factor.reasons.joinToString(", ")}") }
+            item { Note("Ajuste ×${alert.factor.value.toFixed()}: ${alert.factor.reasons.joinToString(", ")}") }
         }
         if (alert.ml == null) {
-            item { Nota("Haz la prueba de sudoración en Perfil para recibir una cantidad exacta.") }
+            item { Note("Haz la prueba de sudoración en Perfil para recibir una cantidad exacta.") }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                BotonRedondo("✓", Colores.Verde, onYaTome, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "Ya tomé")
-                BotonRedondo("5'", Colores.Gris, onPosponer, tamano = ButtonDefaults.DefaultButtonSize, descripcion = "En 5 minutos")
+                RoundButton("✓", AppColors.Green, onYaTome, buttonSize = ButtonDefaults.DefaultButtonSize, description = "Ya tomé")
+                RoundButton("5'", AppColors.Gray, onPosponer, buttonSize = ButtonDefaults.DefaultButtonSize, description = "En 5 minutos")
             }
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Nota("Ya tomé")
-                Nota("En 5 min")
+                Note("Ya tomé")
+                Note("En 5 min")
             }
         }
     }
@@ -201,31 +201,31 @@ fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> 
 
 @Composable
 fun PantallaConfirmarFin(end: () -> Unit, cancel: () -> Unit) {
-    Pantalla {
-        item { Titulo("¿Terminar el entrenamiento?") }
-        item { ChipAccion("Sí, terminar", Colores.Rojo, end) }
-        item { ChipAccion("Seguir entrenando", Colores.Gris, cancel) }
+    WearScreen {
+        item { ScreenTitle("¿Terminar el entrenamiento?") }
+        item { ActionChip("Sí, terminar", AppColors.Red, end) }
+        item { ActionChip("Seguir entrenando", AppColors.Gray, cancel) }
     }
 }
 
 @Composable
 fun PantallaResumen(vm: AppViewModel, id: Long, listo: () -> Unit) {
     val s = vm.sessions.firstOrNull { it.id == id }
-    Pantalla {
-        item { Titulo("Resumen", s?.type) }
+    WearScreen {
+        item { ScreenTitle("Resumen", s?.type) }
         if (s != null) {
-            item { Text(duracion(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
-            item { Nota("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
+            item { Text(formatDuration(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
+            item { Note("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
             item {
-                Nota(
-                    if (s.recommendedMl > 0) "Tomado ${s.drankMl.miles()} ml de ${s.recommendedMl.miles()} ml recomendados"
-                    else "Tomado ${s.drankMl.miles()} ml",
+                Note(
+                    if (s.recommendedMl > 0) "Tomado ${s.drankMl.withThousands()} ml de ${s.recommendedMl.withThousands()} ml recomendados"
+                    else "Tomado ${s.drankMl.withThousands()} ml",
                     Color.White,
                 )
             }
-            item { Nota("Guardado en el historial") }
+            item { Note("Guardado en el historial") }
         }
-        item { ChipAccion("Listo", Colores.Verde, listo) }
+        item { ActionChip("Listo", AppColors.Green, listo) }
     }
 }
 

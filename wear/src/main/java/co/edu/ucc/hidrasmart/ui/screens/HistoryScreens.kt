@@ -7,37 +7,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.ui.ChipAccion
-import co.edu.ucc.hidrasmart.ui.Nota
-import co.edu.ucc.hidrasmart.ui.Pantalla
-import co.edu.ucc.hidrasmart.ui.Titulo
-import co.edu.ucc.hidrasmart.ui.aFecha
-import co.edu.ucc.hidrasmart.ui.duracion
-import co.edu.ucc.hidrasmart.ui.hora
-import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.nombre
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.Note
+import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.toLocalDate
+import co.edu.ucc.hidrasmart.ui.formatDuration
+import co.edu.ucc.hidrasmart.ui.toTimeText
+import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.ui.displayName
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import java.time.LocalDate
 
 @Composable
 fun PantallaHistorial(vm: AppViewModel, abrirDia: (String) -> Unit) {
-    val dias = (vm.intakes.map { it.timestamp.aFecha() } + vm.sessions.map { it.startTime.aFecha() })
+    val dias = (vm.intakes.map { it.timestamp.toLocalDate() } + vm.sessions.map { it.startTime.toLocalDate() })
         .distinct()
         .sortedDescending()
         .take(30)
 
-    Pantalla {
-        item { Titulo("Historial") }
+    WearScreen {
+        item { ScreenTitle("Historial") }
         if (dias.isEmpty()) {
-            item { Nota("Aún no hay registros. Empieza registrando una toma.") }
+            item { Note("Aún no hay registros. Empieza registrando una toma.") }
         }
         dias.forEach { dia ->
-            val total = vm.intakes.filter { it.timestamp.aFecha() == dia }.sumOf { it.ml }
-            val entrenos = vm.sessions.count { it.startTime.aFecha() == dia }
+            val total = vm.intakes.filter { it.timestamp.toLocalDate() == dia }.sumOf { it.ml }
+            val entrenos = vm.sessions.count { it.startTime.toLocalDate() == dia }
             item {
-                ChipAccion(
-                    dia.nombre(), Colores.GrisOscuro, { abrirDia(dia.toString()) },
-                    detalle = "${total.miles()} ml · $entrenos entreno${if (entrenos == 1) "" else "s"}",
+                ActionChip(
+                    dia.displayName(), AppColors.DarkGray, { abrirDia(dia.toString()) },
+                    detail = "${total.withThousands()} ml · $entrenos entreno${if (entrenos == 1) "" else "s"}",
                 )
             }
         }
@@ -47,26 +47,26 @@ fun PantallaHistorial(vm: AppViewModel, abrirDia: (String) -> Unit) {
 @Composable
 fun PantallaDetalleDia(vm: AppViewModel, fecha: String, abrirSesion: (Long) -> Unit) {
     val dia = runCatching { LocalDate.parse(fecha) }.getOrNull() ?: LocalDate.now()
-    val intakes = vm.intakes.filter { it.timestamp.aFecha() == dia }.sortedByDescending { it.timestamp }
-    val sessions = vm.sessions.filter { it.startTime.aFecha() == dia }.sortedByDescending { it.startTime }
+    val intakes = vm.intakes.filter { it.timestamp.toLocalDate() == dia }.sortedByDescending { it.timestamp }
+    val sessions = vm.sessions.filter { it.startTime.toLocalDate() == dia }.sortedByDescending { it.startTime }
     val total = intakes.sumOf { it.ml }
 
-    Pantalla {
-        item { Titulo(dia.nombre(), "${total.miles()} de ${vm.profile.dailyGoalMl.miles()} ml") }
+    WearScreen {
+        item { ScreenTitle(dia.displayName(), "${total.withThousands()} de ${vm.profile.dailyGoalMl.withThousands()} ml") }
         sessions.forEach { s ->
             item {
-                ChipAccion(
-                    s.type, Colores.Azul, { abrirSesion(s.id) },
-                    detalle = "${s.startTime.hora()} · ${duracion(s.durationSec * 1000)}",
-                    icono = Icons.Default.PlayArrow,
+                ActionChip(
+                    s.type, AppColors.Blue, { abrirSesion(s.id) },
+                    detail = "${s.startTime.toTimeText()} · ${formatDuration(s.durationSec * 1000)}",
+                    icon = Icons.Default.PlayArrow,
                 )
             }
         }
         if (intakes.isNotEmpty()) {
-            item { Nota("Tomas") }
+            item { Note("Tomas") }
         }
         intakes.forEach { t ->
-            item { Text("${t.timestamp.hora()} · ${t.ml} ml", style = MaterialTheme.typography.body2) }
+            item { Text("${t.timestamp.toTimeText()} · ${t.ml} ml", style = MaterialTheme.typography.body2) }
         }
     }
 }
@@ -74,15 +74,15 @@ fun PantallaDetalleDia(vm: AppViewModel, fecha: String, abrirSesion: (Long) -> U
 @Composable
 fun PantallaDetalleSesion(vm: AppViewModel, id: Long) {
     val s = vm.sessions.firstOrNull { it.id == id }
-    Pantalla {
+    WearScreen {
         if (s == null) {
-            item { Nota("No se encontró la sesión") }
-            return@Pantalla
+            item { Note("No se encontró la sesión") }
+            return@WearScreen
         }
-        item { Titulo(s.type, "${s.startTime.aFecha().nombre()} · ${s.startTime.hora()}") }
-        item { Text(duracion(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
-        item { Nota("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
-        item { Nota("Tomado: ${s.drankMl.miles()} ml", Color.White) }
-        item { Nota("Recomendado: ${s.recommendedMl.miles()} ml", Color.White) }
+        item { ScreenTitle(s.type, "${s.startTime.toLocalDate().displayName()} · ${s.startTime.toTimeText()}") }
+        item { Text(formatDuration(s.durationSec * 1000), style = MaterialTheme.typography.display3) }
+        item { Note("FC media: ${s.avgHeartRate?.let { "$it lpm" } ?: "sin datos"}", Color.White) }
+        item { Note("Tomado: ${s.drankMl.withThousands()} ml", Color.White) }
+        item { Note("Recomendado: ${s.recommendedMl.withThousands()} ml", Color.White) }
     }
 }

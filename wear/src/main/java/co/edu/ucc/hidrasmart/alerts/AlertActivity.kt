@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import co.edu.ucc.hidrasmart.data.HydrationRepository
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.screens.ContenidoAlerta
-import co.edu.ucc.hidrasmart.ui.theme.HidraTema
+import co.edu.ucc.hidrasmart.ui.theme.HidraSmartTheme
 
 /**
  * Pantalla de alerta independiente: se abre sobre la esfera del reloj aunque la app
@@ -40,7 +40,7 @@ class AlertActivity : ComponentActivity() {
             return
         }
         setContent {
-            HidraTema {
+            HidraSmartTheme {
                 val current = alert
                 if (current != null) {
                     ContenidoAlerta(

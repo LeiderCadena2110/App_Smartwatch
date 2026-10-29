@@ -22,14 +22,14 @@ import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
-import co.edu.ucc.hidrasmart.ui.ChipAccion
-import co.edu.ucc.hidrasmart.ui.FilaNumero
-import co.edu.ucc.hidrasmart.ui.Nota
-import co.edu.ucc.hidrasmart.ui.Pantalla
-import co.edu.ucc.hidrasmart.ui.Titulo
-import co.edu.ucc.hidrasmart.ui.dec
-import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.NumberStepper
+import co.edu.ucc.hidrasmart.ui.Note
+import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.toFixed
+import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlin.math.roundToInt
 
 /** Campos numéricos del perfil que se editan con − y +. */
@@ -39,7 +39,7 @@ enum class CampoPerfil(
     val paso: Double,
     val minimo: Double,
     val maximo: Double,
-    val decimales: Int,
+    val digits: Int,
 ) {
     PESO("Peso", "kg", 0.5, 30.0, 200.0, 1),
     EDAD("Edad", "años", 1.0, 10.0, 90.0, 0),
@@ -69,7 +69,7 @@ enum class CampoPerfil(
         HUMEDAD -> p.copy(manualHumidityPct = v)
     }
 
-    fun text(p: Profile): String = "${leer(p).dec(decimales)} $unidad"
+    fun text(p: Profile): String = "${leer(p).toFixed(digits)} $unidad"
 }
 
 private val CIUDADES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", "Medellin,CO", "Cali,CO")
@@ -101,50 +101,50 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         if (!notificationsEnabled) AlertDiagnostics.openNotificationSettings(contexto)
     }
 
-    Pantalla {
-        item { Titulo("Perfil y ajustes") }
+    WearScreen {
+        item { ScreenTitle("Perfil y ajustes") }
         if (!(notificationsEnabled && exactas && completa)) {
-            item { Nota("⚠ Las alertas no saldrán con la app cerrada: baja a \"Diagnóstico de alertas\".", Colores.Ambar) }
+            item { Note("⚠ Las alertas no saldrán con la app cerrada: baja a \"Diagnóstico de alertas\".", AppColors.Amber) }
         }
         item {
-            ChipAccion(
-                "Prueba de sudoración", Colores.Agua, abrirPrueba,
-                detalle = p.sweatRateLh?.let { "${it.dec(2)} L/h" } ?: "Sin hacer",
+            ActionChip(
+                "Prueba de sudoración", AppColors.Water, abrirPrueba,
+                detail = p.sweatRateLh?.let { "${it.toFixed(2)} L/h" } ?: "Sin hacer",
             )
         }
         listOf(CampoPerfil.PESO, CampoPerfil.EDAD, CampoPerfil.META, CampoPerfil.INTERVALO).forEach { campo ->
-            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.text(p)) }
+            item { ActionChip(campo.titulo, AppColors.DarkGray, { editar(campo) }, detail = campo.text(p)) }
         }
         item {
-            ChipAccion("Ciudad del clima", Colores.GrisOscuro, {
+            ActionChip("Ciudad del clima", AppColors.DarkGray, {
                 val next = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
                 vm.saveProfile(p.copy(city = next))
                 vm.actualizarClima()
-            }, detalle = p.city.substringBefore(","))
+            }, detail = p.city.substringBefore(","))
         }
         val clima = vm.clima
         item {
-            Nota(
-                if (clima != null) "Clima: ${clima.temperatureC.dec()} °C · ${clima.humidityPct.dec(0)} %"
+            Note(
+                if (clima != null) "Clima: ${clima.temperatureC.toFixed()} °C · ${clima.humidityPct.toFixed(0)} %"
                 else vm.mensajeClima ?: "Clima sin consultar",
             )
         }
         listOf(CampoPerfil.ALTITUD, CampoPerfil.TEMPERATURA, CampoPerfil.HUMEDAD).forEach { campo ->
-            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.text(p)) }
+            item { ActionChip(campo.titulo, AppColors.DarkGray, { editar(campo) }, detail = campo.text(p)) }
         }
         item {
-            ChipAccion(
-                "Permisos (sensores y alertas)", if (permiso) Colores.Verde else Colores.Ambar,
+            ActionChip(
+                "Permisos (sensores y alertas)", if (permiso) AppColors.Green else AppColors.Amber,
                 { if (!permiso) pedirPermiso.launch(Sensors.workoutPermissions()) },
-                detalle = if (permiso) "Concedido" else "Toca para permitir",
+                detail = if (permiso) "Concedido" else "Toca para permitir",
             )
         }
-        item { Nota("Altitud, temperatura y humedad manuales se usan cuando no hay barómetro o internet.") }
+        item { Note("Altitud, temperatura y humedad manuales se usan cuando no hay barómetro o internet.") }
 
-        item { Titulo("Diagnóstico de alertas", "Para que salgan con la app cerrada") }
+        item { ScreenTitle("Diagnóstico de alertas", "Para que salgan con la app cerrada") }
         item {
-            ChipAccion(
-                "Notificaciones", if (notificationsEnabled) Colores.Verde else Colores.Rojo,
+            ActionChip(
+                "Notificaciones", if (notificationsEnabled) AppColors.Green else AppColors.Red,
                 {
                     if (!notificationsEnabled) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !yaPidioNotificaciones) {
@@ -155,24 +155,24 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
                         }
                     }
                 },
-                detalle = if (notificationsEnabled) "Activadas" else "BLOQUEADAS · toca para activar",
+                detail = if (notificationsEnabled) "Activadas" else "BLOQUEADAS · toca para activar",
             )
         }
         item {
-            ChipAccion(
-                "Alarmas exactas", if (exactas) Colores.Verde else Colores.Rojo,
+            ActionChip(
+                "Alarmas exactas", if (exactas) AppColors.Green else AppColors.Red,
                 { if (!exactas) AlertDiagnostics.openAlarmSettings(contexto) },
-                detalle = if (exactas) "Permitidas" else "Toca para permitir",
+                detail = if (exactas) "Permitidas" else "Toca para permitir",
             )
         }
         item {
-            ChipAccion(
-                "Pantalla completa", if (completa) Colores.Verde else Colores.Rojo,
+            ActionChip(
+                "Pantalla completa", if (completa) AppColors.Green else AppColors.Red,
                 { if (!completa) AlertDiagnostics.openFullScreenSettings(contexto) },
-                detalle = if (completa) "Permitida" else "Toca para permitir",
+                detail = if (completa) "Permitida" else "Toca para permitir",
             )
         }
-        item { Nota("Versión ${BuildConfig.VERSION_NAME}") }
+        item { Note("Versión ${BuildConfig.VERSION_NAME}") }
     }
 }
 
@@ -183,11 +183,11 @@ fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit)
         val nuevo = ((value + delta) * 10).roundToInt() / 10.0
         value = nuevo.coerceIn(campo.minimo, campo.maximo)
     }
-    Pantalla {
-        item { Titulo(campo.titulo) }
-        item { FilaNumero(campo.unidad, value.dec(campo.decimales), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
+    WearScreen {
+        item { ScreenTitle(campo.titulo) }
+        item { NumberStepper(campo.unidad, value.toFixed(campo.digits), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
         item {
-            ChipAccion("Guardar", Colores.Verde, {
+            ActionChip("Guardar", AppColors.Green, {
                 vm.saveProfile(campo.escribir(vm.profile, value))
                 listo()
             })
@@ -211,33 +211,33 @@ fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
 
     fun paso(v: Double, d: Double) = (((v + d) * 10).roundToInt() / 10.0).coerceIn(30.0, 200.0)
 
-    Pantalla {
-        item { Titulo("Prueba de sudoración", "Pésate antes y después de entrenar") }
-        item { FilaNumero("Peso inicial (kg)", pesoInicial.dec(1), { pesoInicial = paso(pesoInicial, -0.1) }, { pesoInicial = paso(pesoInicial, 0.1) }) }
-        item { FilaNumero("Peso final (kg)", pesoFinal.dec(1), { pesoFinal = paso(pesoFinal, -0.1) }, { pesoFinal = paso(pesoFinal, 0.1) }) }
-        item { FilaNumero("Líquido tomado (ml)", liquido.miles(), { liquido = (liquido - 50).coerceAtLeast(0) }, { liquido += 50 }) }
-        item { FilaNumero("Orina (ml)", orina.miles(), { orina = (orina - 50).coerceAtLeast(0) }, { orina += 50 }) }
-        item { FilaNumero("Duración (min)", "$minutos", { minutos = (minutos - 5).coerceAtLeast(5) }, { minutos = (minutos + 5).coerceAtMost(240) }) }
+    WearScreen {
+        item { ScreenTitle("Prueba de sudoración", "Pésate antes y después de entrenar") }
+        item { NumberStepper("Peso inicial (kg)", pesoInicial.toFixed(1), { pesoInicial = paso(pesoInicial, -0.1) }, { pesoInicial = paso(pesoInicial, 0.1) }) }
+        item { NumberStepper("Peso final (kg)", pesoFinal.toFixed(1), { pesoFinal = paso(pesoFinal, -0.1) }, { pesoFinal = paso(pesoFinal, 0.1) }) }
+        item { NumberStepper("Líquido tomado (ml)", liquido.withThousands(), { liquido = (liquido - 50).coerceAtLeast(0) }, { liquido += 50 }) }
+        item { NumberStepper("Orina (ml)", orina.withThousands(), { orina = (orina - 50).coerceAtLeast(0) }, { orina += 50 }) }
+        item { NumberStepper("Duración (min)", "$minutos", { minutos = (minutos - 5).coerceAtLeast(5) }, { minutos = (minutos + 5).coerceAtMost(240) }) }
 
         val mensajeActual = mensaje
         if (mensajeActual != null) {
-            item { Nota(mensajeActual, if (saved) Colores.AguaClara else Colores.Ambar) }
+            item { Note(mensajeActual, if (saved) AppColors.LightWater else AppColors.Amber) }
         }
         item {
             if (!saved) {
-                ChipAccion("Calcular y guardar", Colores.Verde, {
+                ActionChip("Calcular y guardar", AppColors.Green, {
                     val sweatTest = SweatTest(pesoInicial, pesoFinal, liquido, orina, minutos)
                     vm.guardarPrueba(sweatTest)
                         .onSuccess { rate ->
                             val perdida = HydrationCalculator.weightLossPercent(sweatTest)
                             saved = true
-                            mensaje = "Tasa: ${rate.dec(2)} L/h. Perdiste ${perdida.dec(1)} % del peso" +
+                            mensaje = "Tasa: ${rate.toFixed(2)} L/h. Perdiste ${perdida.toFixed(1)} % del peso" +
                                 if (perdida >= 2.0) " (NATA recomienda menos del 2 %)" else ""
                         }
                         .onFailure { mensaje = it.message ?: "Revisa los datos" }
                 })
             } else {
-                ChipAccion("Listo", Colores.Verde, listo)
+                ActionChip("Listo", AppColors.Green, listo)
             }
         }
     }

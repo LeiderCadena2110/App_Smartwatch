@@ -29,7 +29,7 @@ import co.edu.ucc.hidrasmart.ui.screens.PantallaRegistrar
 import co.edu.ucc.hidrasmart.ui.screens.PantallaResumen
 import co.edu.ucc.hidrasmart.ui.screens.PantallaSesion
 import co.edu.ucc.hidrasmart.ui.screens.Rutas
-import co.edu.ucc.hidrasmart.ui.theme.HidraTema
+import co.edu.ucc.hidrasmart.ui.theme.HidraSmartTheme
 
 /**
  * Navegación de la app: una pila con SwipeDismissableNavHost.
@@ -37,7 +37,7 @@ import co.edu.ucc.hidrasmart.ui.theme.HidraTema
  */
 @Composable
 fun HidraApp(vm: AppViewModel = viewModel()) {
-    HidraTema {
+    HidraSmartTheme {
         val nav = rememberSwipeDismissableNavController()
         val contexto = LocalContext.current
         val enSesion = vm.session != null

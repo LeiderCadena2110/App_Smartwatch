@@ -19,40 +19,40 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.ui.ChipAccion
-import co.edu.ucc.hidrasmart.ui.FilaNumero
-import co.edu.ucc.hidrasmart.ui.Pantalla
-import co.edu.ucc.hidrasmart.ui.Titulo
-import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.theme.Colores
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.NumberStepper
+import co.edu.ucc.hidrasmart.ui.WearScreen
+import co.edu.ucc.hidrasmart.ui.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
 private val CANTIDADES_RAPIDAS = listOf(150, 250, 500)
 
 @Composable
 fun PantallaRegistrar(vm: AppViewModel, registrado: (Int) -> Unit, otraCantidad: () -> Unit) {
-    Pantalla {
-        item { Titulo("Registrar toma", "Hoy: ${vm.totalHoyMl.miles()} ml") }
+    WearScreen {
+        item { ScreenTitle("Registrar toma", "Hoy: ${vm.totalHoyMl.withThousands()} ml") }
         CANTIDADES_RAPIDAS.forEach { ml ->
             item {
-                ChipAccion("+$ml ml", Colores.Agua, {
+                ActionChip("+$ml ml", AppColors.Water, {
                     vm.logIntake(ml)
                     registrado(ml)
                 })
             }
         }
-        item { ChipAccion("Otra cantidad", Colores.Gris, otraCantidad) }
+        item { ActionChip("Otra cantidad", AppColors.Gray, otraCantidad) }
     }
 }
 
 @Composable
 fun PantallaOtraCantidad(vm: AppViewModel, registrado: (Int) -> Unit) {
     var ml by rememberSaveable { mutableIntStateOf(300) }
-    Pantalla {
-        item { Titulo("Otra cantidad") }
-        item { FilaNumero("Mililitros", "$ml", { ml = (ml - 50).coerceAtLeast(50) }, { ml = (ml + 50).coerceAtMost(2000) }) }
+    WearScreen {
+        item { ScreenTitle("Otra cantidad") }
+        item { NumberStepper("Mililitros", "$ml", { ml = (ml - 50).coerceAtLeast(50) }, { ml = (ml + 50).coerceAtMost(2000) }) }
         item {
-            ChipAccion("Registrar", Colores.Verde, {
+            ActionChip("Registrar", AppColors.Green, {
                 vm.logIntake(ml)
                 registrado(ml)
             })
@@ -69,7 +69,7 @@ fun PantallaConfirmacion(ml: Int, listo: () -> Unit) {
     }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Check, contentDescription = null, tint = Colores.Verde, modifier = Modifier.size(48.dp))
+            Icon(Icons.Default.Check, contentDescription = null, tint = AppColors.Green, modifier = Modifier.size(48.dp))
             Text("+$ml ml", style = MaterialTheme.typography.title1)
             Text("Registrado", style = MaterialTheme.typography.caption1)
         }
