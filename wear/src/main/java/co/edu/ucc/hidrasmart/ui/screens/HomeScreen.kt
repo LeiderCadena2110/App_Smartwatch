@@ -28,14 +28,14 @@ import co.edu.ucc.hidrasmart.ui.theme.Colores
 @Composable
 fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
     val total = vm.totalHoyMl
-    val meta = vm.perfil.dailyGoalMl
+    val meta = vm.profile.dailyGoalMl
     val sesion = vm.sesion
 
     Pantalla {
         item { AnilloProgreso(total, meta) }
 
-        if (!vm.perfilConfigurado) {
-            item { ChipAccion("Configura tu perfil", Colores.Ambar, { ir(Rutas.PERFIL) }, icono = Icons.Default.Person) }
+        if (!vm.isProfileConfigured) {
+            item { ChipAccion("Configura tu perfil", Colores.Ambar, { ir(Rutas.PROFILE) }, icono = Icons.Default.Person) }
         }
         if (sesion != null) {
             item {
@@ -51,7 +51,7 @@ fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
             item { ChipAccion("Entrenar", Colores.Azul, { ir(Rutas.TIPO) }, icono = Icons.Default.PlayArrow) }
         }
         item { ChipAccion("Historial", Colores.GrisOscuro, { ir(Rutas.HISTORIAL) }, icono = Icons.Default.DateRange) }
-        item { ChipAccion("Perfil y ajustes", Colores.GrisOscuro, { ir(Rutas.PERFIL) }, icono = Icons.Default.Settings) }
+        item { ChipAccion("Perfil y ajustes", Colores.GrisOscuro, { ir(Rutas.PROFILE) }, icono = Icons.Default.Settings) }
     }
 }
 

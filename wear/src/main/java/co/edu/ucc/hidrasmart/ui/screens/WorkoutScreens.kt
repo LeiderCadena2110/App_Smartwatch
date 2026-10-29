@@ -25,7 +25,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.alerts.Diagnostico
-import co.edu.ucc.hidrasmart.data.Sensores
+import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.BotonRedondo
 import co.edu.ucc.hidrasmart.ui.ChipAccion
@@ -58,12 +58,12 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
         TIPOS.forEach { type ->
             item {
                 ChipAccion(type, Colores.Azul, {
-                    if (Sensores.tienePermisos(contexto)) {
+                    if (Sensors.hasPermissions(contexto)) {
                         vm.iniciarSesion(type)
                         iniciado()
                     } else {
                         tipoPendiente = type
-                        pedirPermisos.launch(Sensores.permisosEntrenamiento())
+                        pedirPermisos.launch(Sensors.workoutPermissions())
                     }
                 })
             }
@@ -73,7 +73,7 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
         } else {
             item { Nota("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", Colores.Ambar) }
         }
-        if (vm.perfil.sweatRateLh == null) {
+        if (vm.profile.sweatRateLh == null) {
             item { Nota("Sin prueba de sudoración las alertas solo te recordarán tomar agua según tu sed.") }
         }
     }
@@ -105,7 +105,7 @@ fun PantallaSesion(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(Icons.Default.Favorite, contentDescription = "Frecuencia cardíaca", tint = Colores.Rojo)
                 Text(
-                    if (lectura != null) "${lectura.bpm} lpm${if (lectura.simulada) " (simulada)" else ""}" else "-- lpm",
+                    if (lectura != null) "${lectura.bpm} lpm${if (lectura.simulated) " (simulada)" else ""}" else "-- lpm",
                     style = MaterialTheme.typography.body1,
                 )
             }
@@ -210,7 +210,7 @@ fun PantallaConfirmarFin(terminar: () -> Unit, cancelar: () -> Unit) {
 
 @Composable
 fun PantallaResumen(vm: AppViewModel, id: Long, listo: () -> Unit) {
-    val s = vm.sesiones.firstOrNull { it.id == id }
+    val s = vm.sessions.firstOrNull { it.id == id }
     Pantalla {
         item { Titulo("Resumen", s?.type) }
         if (s != null) {

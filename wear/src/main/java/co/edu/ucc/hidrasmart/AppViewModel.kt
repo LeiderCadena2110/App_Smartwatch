@@ -9,10 +9,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.ucc.hidrasmart.alerts.MotorSesion
-import co.edu.ucc.hidrasmart.data.ClimaServicio
-import co.edu.ucc.hidrasmart.data.LecturaFc
-import co.edu.ucc.hidrasmart.data.Repositorio
-import co.edu.ucc.hidrasmart.data.Sensores
+import co.edu.ucc.hidrasmart.data.WeatherService
+import co.edu.ucc.hidrasmart.data.HeartRateReading
+import co.edu.ucc.hidrasmart.data.HydrationRepository
+import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Weather
@@ -34,25 +34,25 @@ import java.time.LocalDate
  */
 class AppViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repo = Repositorio(app)
+    private val repo = HydrationRepository(app)
 
-    var perfil by mutableStateOf(repo.perfil())
+    var profile by mutableStateOf(repo.profile())
         private set
-    var perfilConfigurado by mutableStateOf(repo.perfilConfigurado())
+    var isProfileConfigured by mutableStateOf(repo.isProfileConfigured())
         private set
-    var tomas by mutableStateOf(repo.tomas())
+    var intakes by mutableStateOf(repo.intakes())
         private set
-    var sesiones by mutableStateOf(repo.sesiones())
+    var sessions by mutableStateOf(repo.sessions())
         private set
-    var clima by mutableStateOf<Weather?>(repo.ultimoClima())
+    var clima by mutableStateOf<Weather?>(repo.lastWeather())
         private set
     var mensajeClima by mutableStateOf<String?>(null)
         private set
-    var sesion by mutableStateOf<ActiveSession?>(repo.sesionActiva())
+    var sesion by mutableStateOf<ActiveSession?>(repo.activeSession())
         private set
-    var alerta by mutableStateOf<IntakeAlert?>(repo.alertaPendiente())
+    var alerta by mutableStateOf<IntakeAlert?>(repo.pendingAlert())
         private set
-    var fc by mutableStateOf<LecturaFc?>(null)
+    var fc by mutableStateOf<HeartRateReading?>(null)
         private set
     var altitudSensor by mutableStateOf<Double?>(null)
         private set
@@ -64,18 +64,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private var fcLecturasPendientes = 0
 
     // Cuando la alarma o un botón de la notificación cambian algo, la pantalla se actualiza sola
-    private val oyente = SharedPreferences.OnSharedPreferenceChangeListener { _, clave ->
-        if (clave !in Repositorio.CLAVES_LECTURAS) recargar()
+    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key !in HydrationRepository.READING_KEYS) recargar()
     }
 
     val totalHoyMl: Int
         get() {
             val hoy = LocalDate.now()
-            return tomas.filter { it.timestamp.aFecha() == hoy }.sumOf { it.ml }
+            return intakes.filter { it.timestamp.aFecha() == hoy }.sumOf { it.ml }
         }
 
     init {
-        repo.escuchar(oyente)
+        repo.listen(listener)
         actualizarClima()
         if (sesion != null) encenderSensores()
         // Reloj de la pantalla (cronómetro y cuenta regresiva)
@@ -89,26 +89,26 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         guardarLecturasPendientes()
-        repo.dejarDeEscuchar(oyente)
+        repo.stopListening(listener)
     }
 
     private fun recargar() {
-        perfil = repo.perfil()
-        perfilConfigurado = repo.perfilConfigurado()
-        tomas = repo.tomas()
-        sesiones = repo.sesiones()
-        clima = repo.ultimoClima()
-        sesion = repo.sesionActiva()
-        alerta = repo.alertaPendiente()
+        profile = repo.profile()
+        isProfileConfigured = repo.isProfileConfigured()
+        intakes = repo.intakes()
+        sessions = repo.sessions()
+        clima = repo.lastWeather()
+        sesion = repo.activeSession()
+        alerta = repo.pendingAlert()
         if (sesion == null && trabajosSensores.isNotEmpty()) apagarSensores()
     }
 
     // ---------------- Perfil y prueba de sudoración ----------------
 
-    fun guardarPerfil(p: Profile) {
-        repo.guardarPerfil(p)
-        perfil = p
-        perfilConfigurado = true
+    fun saveProfile(p: Profile) {
+        repo.saveProfile(p)
+        profile = p
+        isProfileConfigured = true
         MotorSesion.ajustarIntervalo(getApplication<Application>())
         recargar()
     }
@@ -117,22 +117,22 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun guardarPrueba(sweatTest: SweatTest): Result<Double> = runCatching {
         val rate = HydrationCalculator.sweatRate(sweatTest)
         val condiciones = condicionesActuales().copy(heartRateBpm = null)
-        guardarPerfil(perfil.copy(sweatRateLh = rate, testConditions = condiciones, weightKg = sweatTest.initialWeightKg))
+        saveProfile(profile.copy(sweatRateLh = rate, testConditions = condiciones, weightKg = sweatTest.initialWeightKg))
         rate
     }
 
     // ---------------- Clima y condiciones ----------------
 
     fun actualizarClima() {
-        val clave = BuildConfig.OPENWEATHER_API_KEY
-        if (clave.isBlank()) {
+        val key = BuildConfig.OPENWEATHER_API_KEY
+        if (key.isBlank()) {
             mensajeClima = "Sin clave de clima: se usan los valores manuales"
             return
         }
         viewModelScope.launch {
             try {
-                val c = ClimaServicio.consultar(perfil.city, clave)
-                repo.guardarClima(c)
+                val c = WeatherService.fetch(profile.city, key)
+                repo.saveWeather(c)
                 clima = c
                 mensajeClima = null
             } catch (e: Exception) {
@@ -142,17 +142,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun condicionesActuales(): Conditions = Conditions(
-        altitudeM = altitudSensor ?: perfil.usualAltitudeM,
-        temperatureC = clima?.temperatureC ?: perfil.manualTemperatureC,
-        humidityPct = clima?.humidityPct ?: perfil.manualHumidityPct,
+        altitudeM = altitudSensor ?: profile.usualAltitudeM,
+        temperatureC = clima?.temperatureC ?: profile.manualTemperatureC,
+        humidityPct = clima?.humidityPct ?: profile.manualHumidityPct,
         heartRateBpm = fc?.bpm,
     )
 
     fun factorActual(): Factor =
-        HydrationCalculator.factor(condicionesActuales(), perfil.testConditions, perfil.age)
+        HydrationCalculator.factor(condicionesActuales(), profile.testConditions, profile.age)
 
-    fun mlPerAlert(): Int? = perfil.sweatRateLh?.let {
-        HydrationCalculator.mlPerAlert(it, factorActual().value, perfil.intervalMin)
+    fun mlPerAlert(): Int? = profile.sweatRateLh?.let {
+        HydrationCalculator.mlPerAlert(it, factorActual().value, profile.intervalMin)
     }
 
     // ---------------- Tomas de agua ----------------
@@ -211,7 +211,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         trabajosSensores = listOf(
             viewModelScope.launch {
-                Sensores.ritmoCardiaco(app).collect { lectura ->
+                Sensors.heartRate(app).collect { lectura ->
                     fc = lectura
                     if (sesion?.pausedSince == null) {
                         fcSumaPendiente += lectura.bpm
@@ -220,7 +220,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
             },
             viewModelScope.launch {
-                Sensores.altitud(app).collect { altitudSensor = it }
+                Sensors.altitude(app).collect { altitudSensor = it }
             },
             // Cada 30 s se guardan las lecturas: así la alarma calcula con datos recientes
             viewModelScope.launch {
@@ -240,7 +240,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun guardarLecturasPendientes() {
         val app = getApplication<Application>()
-        repo.guardarLecturas(fc?.bpm, altitudSensor)
+        repo.saveReadings(fc?.bpm, altitudSensor)
         MotorSesion.sumarFc(app, fcSumaPendiente, fcLecturasPendientes)
         fcSumaPendiente = 0
         fcLecturasPendientes = 0

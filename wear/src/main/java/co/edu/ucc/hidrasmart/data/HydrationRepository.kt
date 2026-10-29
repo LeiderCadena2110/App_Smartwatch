@@ -17,16 +17,16 @@ import org.json.JSONObject
  * Guarda todo en el reloj (SharedPreferences con JSON). La app funciona sin internet
  * y sin teléfono. Para muchos datos se podría migrar a Room más adelante.
  */
-class Repositorio(contexto: Context) {
+class HydrationRepository(contexto: Context) {
 
     private val prefs = contexto.getSharedPreferences("hidrasmart", Context.MODE_PRIVATE)
 
     // ---------- Perfil ----------
-    fun perfilConfigurado(): Boolean = prefs.contains(PERFIL)
+    fun isProfileConfigured(): Boolean = prefs.contains(PROFILE)
 
-    fun perfil(): Profile {
-        val texto = prefs.getString(PERFIL, null) ?: return Profile()
-        val o = JSONObject(texto)
+    fun profile(): Profile {
+        val text = prefs.getString(PROFILE, null) ?: return Profile()
+        val o = JSONObject(text)
         return Profile(
             weightKg = o.optDouble("pesoKg", 70.0),
             age = o.optInt("edad", 22),
@@ -36,12 +36,12 @@ class Repositorio(contexto: Context) {
             usualAltitudeM = o.optDouble("altitudHabitualM", 2527.0),
             manualTemperatureC = o.optDouble("temperaturaManualC", 14.0),
             manualHumidityPct = o.optDouble("humedadManualPct", 75.0),
-            sweatRateLh = o.dobleONulo("tasaSudoracionLh"),
-            testConditions = o.optJSONObject("condicionesPrueba")?.aCondiciones(),
+            sweatRateLh = o.doubleOrNull("tasaSudoracionLh"),
+            testConditions = o.optJSONObject("condicionesPrueba")?.toConditions(),
         )
     }
 
-    fun guardarPerfil(p: Profile) {
+    fun saveProfile(p: Profile) {
         val o = JSONObject()
             .put("pesoKg", p.weightKg)
             .put("edad", p.age)
@@ -52,20 +52,20 @@ class Repositorio(contexto: Context) {
             .put("temperaturaManualC", p.manualTemperatureC)
             .put("humedadManualPct", p.manualHumidityPct)
         p.sweatRateLh?.let { o.put("tasaSudoracionLh", it) }
-        p.testConditions?.let { o.put("condicionesPrueba", it.aJson()) }
-        prefs.edit().putString(PERFIL, o.toString()).apply()
+        p.testConditions?.let { o.put("condicionesPrueba", it.toJson()) }
+        prefs.edit().putString(PROFILE, o.toString()).apply()
     }
 
     // ---------- Tomas de agua ----------
-    fun tomas(): List<Intake> = leerLista(TOMAS) { Intake(it.getLong("instante"), it.getInt("ml")) }
+    fun intakes(): List<Intake> = readList(INTAKES) { Intake(it.getLong("instante"), it.getInt("ml")) }
 
-    fun agregarToma(t: Intake) {
-        val lista = tomas() + t
-        guardarLista(TOMAS, lista.takeLast(MAX_TOMAS)) { JSONObject().put("instante", it.timestamp).put("ml", it.ml) }
+    fun addIntake(t: Intake) {
+        val items = intakes() + t
+        writeList(INTAKES, items.takeLast(MAX_INTAKES)) { JSONObject().put("instante", it.timestamp).put("ml", it.ml) }
     }
 
     // ---------- Sesiones de entrenamiento ----------
-    fun sesiones(): List<SavedSession> = leerLista(SESIONES) {
+    fun sessions(): List<SavedSession> = readList(SESSIONS) {
         SavedSession(
             id = it.getLong("id"),
             type = it.getString("tipo"),
@@ -78,9 +78,9 @@ class Repositorio(contexto: Context) {
         )
     }
 
-    fun guardarSesion(s: SavedSession) {
-        val lista = sesiones() + s
-        guardarLista(SESIONES, lista.takeLast(MAX_SESIONES)) {
+    fun saveSession(s: SavedSession) {
+        val items = sessions() + s
+        writeList(SESSIONS, items.takeLast(MAX_SESSIONS)) {
             val o = JSONObject()
                 .put("id", it.id).put("tipo", it.type).put("inicio", it.startTime).put("fin", it.endTime)
                 .put("duracionSeg", it.durationSec).put("tomadoMl", it.drankMl).put("recomendadoMl", it.recommendedMl)
@@ -90,21 +90,21 @@ class Repositorio(contexto: Context) {
     }
 
     // ---------- Clima (último valor, para usarlo sin conexión) ----------
-    fun ultimoClima(): Weather? {
-        val texto = prefs.getString(CLIMA, null) ?: return null
-        val o = JSONObject(texto)
+    fun lastWeather(): Weather? {
+        val text = prefs.getString(WEATHER, null) ?: return null
+        val o = JSONObject(text)
         return Weather(o.getDouble("t"), o.getDouble("h"), o.getString("ciudad"), o.getLong("instante"))
     }
 
-    fun guardarClima(c: Weather) {
+    fun saveWeather(c: Weather) {
         val o = JSONObject().put("t", c.temperatureC).put("h", c.humidityPct).put("ciudad", c.city).put("instante", c.timestamp)
-        prefs.edit().putString(CLIMA, o.toString()).apply()
+        prefs.edit().putString(WEATHER, o.toString()).apply()
     }
 
     // ---------- Sesión activa (sobrevive aunque Android cierre la app) ----------
-    fun sesionActiva(): ActiveSession? {
-        val texto = prefs.getString(SESION_ACTIVA, null) ?: return null
-        val o = JSONObject(texto)
+    fun activeSession(): ActiveSession? {
+        val text = prefs.getString(ACTIVE_SESSION, null) ?: return null
+        val o = JSONObject(text)
         return ActiveSession(
             type = o.getString("tipo"),
             startTime = o.getLong("inicio"),
@@ -118,9 +118,9 @@ class Repositorio(contexto: Context) {
         )
     }
 
-    fun guardarSesionActiva(s: ActiveSession?) {
+    fun saveActiveSession(s: ActiveSession?) {
         if (s == null) {
-            prefs.edit().remove(SESION_ACTIVA).apply()
+            prefs.edit().remove(ACTIVE_SESSION).apply()
             return
         }
         val o = JSONObject()
@@ -128,13 +128,13 @@ class Repositorio(contexto: Context) {
             .put("pausadoMs", s.pausedMs).put("tomadoMl", s.drankMl).put("recomendadoMl", s.recommendedMl)
             .put("fcSuma", s.heartRateSum).put("fcLecturas", s.heartRateReadings)
         s.pausedSince?.let { o.put("pausadaDesde", it) }
-        prefs.edit().putString(SESION_ACTIVA, o.toString()).apply()
+        prefs.edit().putString(ACTIVE_SESSION, o.toString()).apply()
     }
 
     // ---------- Alerta pendiente ----------
-    fun alertaPendiente(): IntakeAlert? {
-        val texto = prefs.getString(ALERTA, null) ?: return null
-        val o = JSONObject(texto)
+    fun pendingAlert(): IntakeAlert? {
+        val text = prefs.getString(ALERT, null) ?: return null
+        val o = JSONObject(text)
         val reasons = o.optJSONArray("razones")
         return IntakeAlert(
             ml = if (o.has("ml")) o.getInt("ml") else null,
@@ -146,61 +146,61 @@ class Repositorio(contexto: Context) {
         )
     }
 
-    fun guardarAlerta(a: IntakeAlert?) {
+    fun saveAlert(a: IntakeAlert?) {
         if (a == null) {
-            prefs.edit().remove(ALERTA).apply()
+            prefs.edit().remove(ALERT).apply()
             return
         }
         val reasons = JSONArray()
         a.factor.reasons.forEach { reasons.put(it) }
         val o = JSONObject().put("factor", a.factor.value).put("razones", reasons).put("instante", a.timestamp)
         a.ml?.let { o.put("ml", it) }
-        prefs.edit().putString(ALERTA, o.toString()).apply()
+        prefs.edit().putString(ALERT, o.toString()).apply()
     }
 
     // ---------- Últimas lecturas de sensores (para calcular la alerta con la app cerrada) ----------
-    fun ultimaFc(): Int? = if (prefs.contains(ULTIMA_FC)) prefs.getInt(ULTIMA_FC, 0) else null
+    fun lastHeartRate(): Int? = if (prefs.contains(LAST_HEART_RATE)) prefs.getInt(LAST_HEART_RATE, 0) else null
 
-    fun ultimaAltitud(): Double? =
-        if (prefs.contains(ULTIMA_ALTITUD)) prefs.getFloat(ULTIMA_ALTITUD, 0f).toDouble() else null
+    fun lastAltitude(): Double? =
+        if (prefs.contains(LAST_ALTITUDE)) prefs.getFloat(LAST_ALTITUDE, 0f).toDouble() else null
 
-    fun guardarLecturas(fc: Int?, altitud: Double?) {
+    fun saveReadings(fc: Int?, altitude: Double?) {
         val e = prefs.edit()
-        if (fc != null) e.putInt(ULTIMA_FC, fc)
-        if (altitud != null) e.putFloat(ULTIMA_ALTITUD, altitud.toFloat())
+        if (fc != null) e.putInt(LAST_HEART_RATE, fc)
+        if (altitude != null) e.putFloat(LAST_ALTITUDE, altitude.toFloat())
         e.apply()
     }
 
     // ---------- Avisos de cambios (la app se actualiza cuando la alarma cambia algo) ----------
-    fun escuchar(oyente: SharedPreferences.OnSharedPreferenceChangeListener) =
-        prefs.registerOnSharedPreferenceChangeListener(oyente)
+    fun listen(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
+        prefs.registerOnSharedPreferenceChangeListener(listener)
 
-    fun dejarDeEscuchar(oyente: SharedPreferences.OnSharedPreferenceChangeListener) =
-        prefs.unregisterOnSharedPreferenceChangeListener(oyente)
+    fun stopListening(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
 
     // ---------- Utilidades ----------
-    private fun <T> leerLista(clave: String, convertir: (JSONObject) -> T): List<T> {
-        val texto = prefs.getString(clave, null) ?: return emptyList()
-        val arreglo = JSONArray(texto)
-        return (0 until arreglo.length()).map { convertir(arreglo.getJSONObject(it)) }
+    private fun <T> readList(key: String, convert: (JSONObject) -> T): List<T> {
+        val text = prefs.getString(key, null) ?: return emptyList()
+        val array = JSONArray(text)
+        return (0 until array.length()).map { convert(array.getJSONObject(it)) }
     }
 
-    private fun <T> guardarLista(clave: String, lista: List<T>, convertir: (T) -> JSONObject) {
-        val arreglo = JSONArray()
-        lista.forEach { arreglo.put(convertir(it)) }
-        prefs.edit().putString(clave, arreglo.toString()).apply()
+    private fun <T> writeList(key: String, items: List<T>, convert: (T) -> JSONObject) {
+        val array = JSONArray()
+        items.forEach { array.put(convert(it)) }
+        prefs.edit().putString(key, array.toString()).apply()
     }
 
-    private fun JSONObject.dobleONulo(clave: String): Double? =
-        if (has(clave) && !isNull(clave)) getDouble(clave) else null
+    private fun JSONObject.doubleOrNull(key: String): Double? =
+        if (has(key) && !isNull(key)) getDouble(key) else null
 
-    private fun JSONObject.aCondiciones() = Conditions(
-        altitudeM = dobleONulo("altitudM"),
-        temperatureC = dobleONulo("temperaturaC"),
-        humidityPct = dobleONulo("humedadPct"),
+    private fun JSONObject.toConditions() = Conditions(
+        altitudeM = doubleOrNull("altitudM"),
+        temperatureC = doubleOrNull("temperaturaC"),
+        humidityPct = doubleOrNull("humedadPct"),
     )
 
-    private fun Conditions.aJson(): JSONObject {
+    private fun Conditions.toJson(): JSONObject {
         val o = JSONObject()
         altitudeM?.let { o.put("altitudM", it) }
         temperatureC?.let { o.put("temperaturaC", it) }
@@ -210,17 +210,17 @@ class Repositorio(contexto: Context) {
 
     companion object {
         /** Claves que cambian con cada lectura de sensor: la app no necesita recargarse por ellas. */
-        val CLAVES_LECTURAS = setOf("ultima_fc", "ultima_altitud")
+        val READING_KEYS = setOf("ultima_fc", "ultima_altitud")
 
-        const val PERFIL = "perfil"
-        const val TOMAS = "tomas"
-        const val SESIONES = "sesiones"
-        const val CLIMA = "clima"
-        const val SESION_ACTIVA = "sesion_activa"
-        const val ALERTA = "alerta"
-        const val ULTIMA_FC = "ultima_fc"
-        const val ULTIMA_ALTITUD = "ultima_altitud"
-        const val MAX_TOMAS = 2000
-        const val MAX_SESIONES = 300
+        const val PROFILE = "perfil"
+        const val INTAKES = "tomas"
+        const val SESSIONS = "sesiones"
+        const val WEATHER = "clima"
+        const val ACTIVE_SESSION = "sesion_activa"
+        const val ALERT = "alerta"
+        const val LAST_HEART_RATE = "ultima_fc"
+        const val LAST_ALTITUDE = "ultima_altitud"
+        const val MAX_INTAKES = 2000
+        const val MAX_SESSIONS = 300
     }
 }

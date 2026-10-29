@@ -18,7 +18,7 @@ import android.os.Build
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
 import co.edu.ucc.hidrasmart.alerts.Diagnostico
-import co.edu.ucc.hidrasmart.data.Sensores
+import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
@@ -69,18 +69,18 @@ enum class CampoPerfil(
         HUMEDAD -> p.copy(manualHumidityPct = v)
     }
 
-    fun texto(p: Profile): String = "${leer(p).dec(decimales)} $unidad"
+    fun text(p: Profile): String = "${leer(p).dec(decimales)} $unidad"
 }
 
 private val CIUDADES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", "Medellin,CO", "Cali,CO")
 
 @Composable
 fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba: () -> Unit) {
-    val p = vm.perfil
+    val p = vm.profile
     val contexto = LocalContext.current
-    var permiso by remember { mutableStateOf(Sensores.tienePermisos(contexto)) }
+    var permiso by remember { mutableStateOf(Sensors.hasPermissions(contexto)) }
     val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        permiso = Sensores.tienePermisos(contexto)
+        permiso = Sensors.hasPermissions(contexto)
     }
 
     // Diagnóstico de alertas: se vuelve a revisar cada vez que se regresa a esta pantalla
@@ -88,7 +88,7 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
     var exactas by remember { mutableStateOf(Diagnostico.alarmasExactas(contexto)) }
     var completa by remember { mutableStateOf(Diagnostico.pantallaCompleta(contexto)) }
     fun revisar() {
-        permiso = Sensores.tienePermisos(contexto)
+        permiso = Sensors.hasPermissions(contexto)
         notificaciones = Diagnostico.notificaciones(contexto)
         exactas = Diagnostico.alarmasExactas(contexto)
         completa = Diagnostico.pantallaCompleta(contexto)
@@ -113,12 +113,12 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
             )
         }
         listOf(CampoPerfil.PESO, CampoPerfil.EDAD, CampoPerfil.META, CampoPerfil.INTERVALO).forEach { campo ->
-            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.texto(p)) }
+            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.text(p)) }
         }
         item {
             ChipAccion("Ciudad del clima", Colores.GrisOscuro, {
                 val siguiente = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
-                vm.guardarPerfil(p.copy(city = siguiente))
+                vm.saveProfile(p.copy(city = siguiente))
                 vm.actualizarClima()
             }, detalle = p.city.substringBefore(","))
         }
@@ -130,12 +130,12 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
             )
         }
         listOf(CampoPerfil.ALTITUD, CampoPerfil.TEMPERATURA, CampoPerfil.HUMEDAD).forEach { campo ->
-            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.texto(p)) }
+            item { ChipAccion(campo.titulo, Colores.GrisOscuro, { editar(campo) }, detalle = campo.text(p)) }
         }
         item {
             ChipAccion(
                 "Permisos (sensores y alertas)", if (permiso) Colores.Verde else Colores.Ambar,
-                { if (!permiso) pedirPermiso.launch(Sensores.permisosEntrenamiento()) },
+                { if (!permiso) pedirPermiso.launch(Sensors.workoutPermissions()) },
                 detalle = if (permiso) "Concedido" else "Toca para permitir",
             )
         }
@@ -178,7 +178,7 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
 
 @Composable
 fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit) {
-    var value by rememberSaveable { mutableDoubleStateOf(campo.leer(vm.perfil)) }
+    var value by rememberSaveable { mutableDoubleStateOf(campo.leer(vm.profile)) }
     fun ajustar(delta: Double) {
         val nuevo = ((value + delta) * 10).roundToInt() / 10.0
         value = nuevo.coerceIn(campo.minimo, campo.maximo)
@@ -188,7 +188,7 @@ fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit)
         item { FilaNumero(campo.unidad, value.dec(campo.decimales), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
         item {
             ChipAccion("Guardar", Colores.Verde, {
-                vm.guardarPerfil(campo.escribir(vm.perfil, value))
+                vm.saveProfile(campo.escribir(vm.profile, value))
                 listo()
             })
         }
@@ -201,8 +201,8 @@ fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit)
  */
 @Composable
 fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
-    var pesoInicial by rememberSaveable { mutableDoubleStateOf(vm.perfil.weightKg) }
-    var pesoFinal by rememberSaveable { mutableDoubleStateOf(vm.perfil.weightKg - 0.5) }
+    var pesoInicial by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg) }
+    var pesoFinal by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg - 0.5) }
     var liquido by rememberSaveable { mutableIntStateOf(0) }
     var orina by rememberSaveable { mutableIntStateOf(0) }
     var minutos by rememberSaveable { mutableIntStateOf(60) }

@@ -60,11 +60,11 @@ object Alarmas {
             ContextCompat.checkSelfPermission(contexto, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
 
-        val texto = alerta.ml?.let { "Toma $it ml de agua" } ?: "Toma agua según tu sed"
+        val text = alerta.ml?.let { "Toma $it ml de agua" } ?: "Toma agua según tu sed"
         val notificacion = NotificationCompat.Builder(contexto, CANAL)
             .setSmallIcon(R.drawable.ic_gota)
             .setContentTitle("¡Hora de hidratarte!")
-            .setContentText(texto)
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVibrate(PATRON_VIBRACION)
@@ -122,10 +122,10 @@ object Alarmas {
         }
     }
 
-    private fun intentReceptor(contexto: Context, accion: String, codigo: Int): PendingIntent =
+    private fun intentReceptor(contexto: Context, accion: String, code: Int): PendingIntent =
         PendingIntent.getBroadcast(
             contexto,
-            codigo,
+            code,
             Intent(contexto, AlertaReceiver::class.java).setAction(accion),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

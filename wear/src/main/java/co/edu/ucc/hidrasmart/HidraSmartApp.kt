@@ -52,8 +52,8 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
 
         // Cuando llega la hora de tomar agua, abrir la alerta desde cualquier pantalla
         LaunchedEffect(vm.alerta) {
-            if (vm.alerta != null && nav.currentDestination?.route != Rutas.ALERTA) {
-                nav.navigate(Rutas.ALERTA)
+            if (vm.alerta != null && nav.currentDestination?.route != Rutas.ALERT) {
+                nav.navigate(Rutas.ALERT)
             }
         }
 
@@ -89,10 +89,10 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
                     registrar = { nav.navigate(Rutas.REGISTRAR) },
                     terminar = { nav.navigate(Rutas.CONFIRMAR_FIN) },
                     salir = { nav.popBackStack(Rutas.INICIO, inclusive = false) },
-                    abrirAlerta = { nav.navigate(Rutas.ALERTA) },
+                    abrirAlerta = { nav.navigate(Rutas.ALERT) },
                 )
             }
-            composable(Rutas.ALERTA) {
+            composable(Rutas.ALERT) {
                 PantallaAlerta(vm) { nav.popBackStack() }
             }
             composable(Rutas.CONFIRMAR_FIN) {
@@ -130,7 +130,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
             ) { entrada ->
                 PantallaDetalleSesion(vm, id = entrada.arguments?.getLong("id") ?: 0L)
             }
-            composable(Rutas.PERFIL) {
+            composable(Rutas.PROFILE) {
                 PantallaPerfil(
                     vm,
                     editar = { campo -> nav.navigate(Rutas.editar(campo)) },

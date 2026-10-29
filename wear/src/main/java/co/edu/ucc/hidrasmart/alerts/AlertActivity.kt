@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import co.edu.ucc.hidrasmart.data.Repositorio
+import co.edu.ucc.hidrasmart.data.HydrationRepository
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.screens.ContenidoAlerta
 import co.edu.ucc.hidrasmart.ui.theme.HidraTema
@@ -19,11 +19,11 @@ import co.edu.ucc.hidrasmart.ui.theme.HidraTema
  */
 class AlertaActivity : ComponentActivity() {
 
-    private lateinit var repo: Repositorio
+    private lateinit var repo: HydrationRepository
     private var alerta by mutableStateOf<IntakeAlert?>(null)
 
-    private val oyente = SharedPreferences.OnSharedPreferenceChangeListener { _, clave ->
-        if (clave !in Repositorio.CLAVES_LECTURAS) actualizar()
+    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key !in HydrationRepository.READING_KEYS) actualizar()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +33,8 @@ class AlertaActivity : ComponentActivity() {
         setTurnScreenOn(true)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        repo = Repositorio(this)
-        alerta = repo.alertaPendiente()
+        repo = HydrationRepository(this)
+        alerta = repo.pendingAlert()
         if (alerta == null) {
             finish()
             return
@@ -62,19 +62,19 @@ class AlertaActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         visible = true
-        repo.escuchar(oyente)
+        repo.listen(listener)
         actualizar()
     }
 
     override fun onStop() {
         super.onStop()
         visible = false
-        repo.dejarDeEscuchar(oyente)
+        repo.stopListening(listener)
     }
 
     /** Si la alerta se respondió desde la notificación o la app, esta pantalla se cierra. */
     private fun actualizar() {
-        alerta = repo.alertaPendiente()
+        alerta = repo.pendingAlert()
         if (alerta == null) finish()
     }
 

@@ -59,7 +59,7 @@ fun Pantalla(
 /** Chip de ancho completo (52 dp de alto) con el color de su acción. */
 @Composable
 fun ChipAccion(
-    texto: String,
+    text: String,
     color: Color,
     onClick: () -> Unit,
     detalle: String? = null,
@@ -70,7 +70,7 @@ fun ChipAccion(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         enabled = habilitado,
-        label = { Text(texto, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+        label = { Text(text, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         secondaryLabel = if (detalle != null) {
             { Text(detalle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         } else {
@@ -93,18 +93,18 @@ fun ChipAccion(
 /** Botón redondo con texto (por ejemplo "+" o "−"). Mínimo 48 dp, el mínimo táctil de Wear OS. */
 @Composable
 fun BotonRedondo(
-    texto: String,
+    text: String,
     color: Color,
     onClick: () -> Unit,
     tamano: Dp = ButtonDefaults.SmallButtonSize,
-    descripcion: String = texto,
+    descripcion: String = text,
 ) {
     Button(
         onClick = onClick,
         modifier = Modifier.size(tamano).semantics { contentDescription = descripcion },
         colors = ButtonDefaults.primaryButtonColors(backgroundColor = color, contentColor = Color.White),
     ) {
-        Text(texto, fontSize = 20.sp)
+        Text(text, fontSize = 20.sp)
     }
 }
 
@@ -126,9 +126,9 @@ fun FilaNumero(etiqueta: String, value: String, onMenos: () -> Unit, onMas: () -
 
 /** Título centrado para la parte de arriba de una lista. */
 @Composable
-fun Titulo(texto: String, subtitulo: String? = null) {
+fun Titulo(text: String, subtitulo: String? = null) {
     Column(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(texto, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
+        Text(text, style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
         if (subtitulo != null) {
             Text(subtitulo, style = MaterialTheme.typography.caption2, color = Color.LightGray, textAlign = TextAlign.Center)
         }
@@ -137,9 +137,9 @@ fun Titulo(texto: String, subtitulo: String? = null) {
 
 /** Texto informativo pequeño y centrado. */
 @Composable
-fun Nota(texto: String, color: Color = Color.LightGray) {
+fun Nota(text: String, color: Color = Color.LightGray) {
     Text(
-        texto,
+        text,
         modifier = Modifier.fillMaxWidth(),
         style = MaterialTheme.typography.caption2,
         color = color,
