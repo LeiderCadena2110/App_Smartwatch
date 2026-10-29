@@ -29,8 +29,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
- * Estado de la pantalla. Los datos viven en el reloj (Repositorio) y las reglas del
- * entrenamiento en MotorSesion, para que la alarma funcione aunque la app esté cerrada.
+ * Estado de la pantalla. Los datos viven en el reloj (HydrationRepository) y las reglas del
+ * entrenamiento en SessionEngine, para que la alarma funcione aunque la app esté cerrada.
  */
 class AppViewModel(app: Application) : AndroidViewModel(app) {
 
