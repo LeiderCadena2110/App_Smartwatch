@@ -14,10 +14,10 @@
 | | `data` | `HydrationRepository` (SharedPreferences + JSON) y `WeatherService` (OpenWeatherMap) |
 | | `ai` | `HydrationPredictor`, `RidgeRegression`, `HydrationInsights`, `LocalCoach`, `PromptBuilder`, `GeminiClient`, `AiCoach` |
 | | `format` | `Formatters`: fechas, miles, decimales y duraciones en español |
-| `wear` | raíz | `MainActivity`, `HidraSmartApp` (navegación), `AppViewModel` |
+| `wear` | raíz | `MainActivity`, `AppViewModel` |
 | | `alerts` | `SessionEngine` (reglas del entrenamiento), `AlarmScheduler`, `AlertReceiver`, `AlertActivity`, `AlertDiagnostics` |
 | | `data` | `Sensors`: frecuencia cardíaca y barómetro |
-| | `ui` | `Components`, `theme`, `screens` (Home, Intake, Workout, Coach, History, Profile, Routes) |
+| | `ui` | `components`, `navigation` (`HidraSmartApp`, `Routes`), `screens` (Home, Intake, Workout, Coach, History, Profile), `theme` |
 | `mobile` | raíz | `MainActivity`, `MobileViewModel` |
 | | `ui` | `components`, `navigation` (barra inferior), `screens` (Home, Coach, History, Profile), `theme` |
 

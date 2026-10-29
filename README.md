@@ -56,7 +56,7 @@ App_Smartwatch/
 │   └── src/main/java/co/edu/ucc/hidrasmart/
 │       ├── alerts/               AlarmScheduler, SessionEngine, AlertActivity...
 │       ├── data/                 Sensors (frecuencia cardíaca y barómetro)
-│       └── ui/                   components, theme, screens
+│       └── ui/                   components, navigation, screens, theme
 ├── mobile/                       App del celular (Android)
 │   └── src/main/java/co/edu/ucc/hidrasmart/mobile/
 │       └── ui/                   components, navigation, screens, theme
