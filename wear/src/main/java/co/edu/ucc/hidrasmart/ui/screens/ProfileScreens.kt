@@ -77,28 +77,28 @@ private val CITIES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", 
 @Composable
 fun ProfileScreen(vm: AppViewModel, editField: (ProfileField) -> Unit, onOpenSweatTest: () -> Unit) {
     val p = vm.profile
-    val contexto = LocalContext.current
-    var permissionGranted by remember { mutableStateOf(Sensors.hasPermissions(contexto)) }
+    val context = LocalContext.current
+    var permissionGranted by remember { mutableStateOf(Sensors.hasPermissions(context)) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        permissionGranted = Sensors.hasPermissions(contexto)
+        permissionGranted = Sensors.hasPermissions(context)
     }
 
     // Diagnóstico de alertas: se vuelve a revisar cada vez que se regresa a esta pantalla
-    var notificationsEnabled by remember { mutableStateOf(AlertDiagnostics.notificationsEnabled(contexto)) }
-    var exactAllowed by remember { mutableStateOf(AlertDiagnostics.exactAlarmsAllowed(contexto)) }
-    var fullScreenOk by remember { mutableStateOf(AlertDiagnostics.fullScreenAllowed(contexto)) }
+    var notificationsEnabled by remember { mutableStateOf(AlertDiagnostics.notificationsEnabled(context)) }
+    var exactAllowed by remember { mutableStateOf(AlertDiagnostics.exactAlarmsAllowed(context)) }
+    var fullScreenOk by remember { mutableStateOf(AlertDiagnostics.fullScreenAllowed(context)) }
     fun recheck() {
-        permissionGranted = Sensors.hasPermissions(contexto)
-        notificationsEnabled = AlertDiagnostics.notificationsEnabled(contexto)
-        exactAllowed = AlertDiagnostics.exactAlarmsAllowed(contexto)
-        fullScreenOk = AlertDiagnostics.fullScreenAllowed(contexto)
+        permissionGranted = Sensors.hasPermissions(context)
+        notificationsEnabled = AlertDiagnostics.notificationsEnabled(context)
+        exactAllowed = AlertDiagnostics.exactAlarmsAllowed(context)
+        fullScreenOk = AlertDiagnostics.fullScreenAllowed(context)
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { recheck() }
     var askedNotifications by rememberSaveable { mutableStateOf(false) }
     val notificationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         recheck()
         // Si el sistema ya no muestra el diálogo, se abren los ajustes de la app
-        if (!notificationsEnabled) AlertDiagnostics.openNotificationSettings(contexto)
+        if (!notificationsEnabled) AlertDiagnostics.openNotificationSettings(context)
     }
 
     WearScreen {
@@ -119,14 +119,14 @@ fun ProfileScreen(vm: AppViewModel, editField: (ProfileField) -> Unit, onOpenSwe
             ActionChip("Ciudad del clima", AppColors.DarkGray, {
                 val next = CITIES[(CITIES.indexOf(p.city) + 1) % CITIES.size]
                 vm.saveProfile(p.copy(city = next))
-                vm.actualizarClima()
+                vm.refreshWeather()
             }, detail = p.city.substringBefore(","))
         }
-        val clima = vm.clima
+        val weather = vm.weather
         item {
             Note(
-                if (clima != null) "Clima: ${clima.temperatureC.toFixed()} °C · ${clima.humidityPct.toFixed(0)} %"
-                else vm.mensajeClima ?: "Clima sin consultar",
+                if (weather != null) "Clima: ${weather.temperatureC.toFixed()} °C · ${weather.humidityPct.toFixed(0)} %"
+                else vm.weatherMessage ?: "Clima sin consultar",
             )
         }
         listOf(ProfileField.ALTITUDE, ProfileField.TEMPERATURE, ProfileField.HUMIDITY).forEach { field ->
@@ -151,7 +151,7 @@ fun ProfileScreen(vm: AppViewModel, editField: (ProfileField) -> Unit, onOpenSwe
                             askedNotifications = true
                             notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            AlertDiagnostics.openNotificationSettings(contexto)
+                            AlertDiagnostics.openNotificationSettings(context)
                         }
                     }
                 },
@@ -161,14 +161,14 @@ fun ProfileScreen(vm: AppViewModel, editField: (ProfileField) -> Unit, onOpenSwe
         item {
             ActionChip(
                 "Alarmas exactas", if (exactAllowed) AppColors.Green else AppColors.Red,
-                { if (!exactAllowed) AlertDiagnostics.openAlarmSettings(contexto) },
+                { if (!exactAllowed) AlertDiagnostics.openAlarmSettings(context) },
                 detail = if (exactAllowed) "Permitidas" else "Toca para permitir",
             )
         }
         item {
             ActionChip(
                 "Pantalla completa", if (fullScreenOk) AppColors.Green else AppColors.Red,
-                { if (!fullScreenOk) AlertDiagnostics.openFullScreenSettings(contexto) },
+                { if (!fullScreenOk) AlertDiagnostics.openFullScreenSettings(context) },
                 detail = if (fullScreenOk) "Permitida" else "Toca para permitir",
             )
         }
@@ -227,7 +227,7 @@ fun SweatTestScreen(vm: AppViewModel, onDone: () -> Unit) {
             if (!saved) {
                 ActionChip("Calcular y guardar", AppColors.Green, {
                     val sweatTest = SweatTest(initialWeight, finalWeight, fluid, urine, minutes)
-                    vm.guardarPrueba(sweatTest)
+                    vm.saveSweatTest(sweatTest)
                         .onSuccess { rate ->
                             val loss = HydrationCalculator.weightLossPercent(sweatTest)
                             saved = true

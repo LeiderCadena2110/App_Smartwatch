@@ -57,8 +57,8 @@ class HydrationCalculatorTest {
     @Test
     fun factor_notTriggeredJustByBeingInPasto() {
         // La prueba se hizo en Pasto y se entrena en Pasto: la altitud alta no suma
-        val pasto = Conditions(altitudeM = 2527.0, temperatureC = 14.0, humidityPct = 60.0)
-        assertEquals(1.0, HydrationCalculator.factor(pasto, pasto, age = 22).value, 0.0001)
+        val pastoConditions = Conditions(altitudeM = 2527.0, temperatureC = 14.0, humidityPct = 60.0)
+        assertEquals(1.0, HydrationCalculator.factor(pastoConditions, pastoConditions, age = 22).value, 0.0001)
     }
 
     @Test

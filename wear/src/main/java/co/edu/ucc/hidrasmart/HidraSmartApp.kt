@@ -36,17 +36,17 @@ import co.edu.ucc.hidrasmart.ui.theme.HidraSmartTheme
  * Deslizar a la derecha vuelve atrás; salir de la sesión con el gesto NO la termina.
  */
 @Composable
-fun HidraApp(vm: AppViewModel = viewModel()) {
+fun HidraSmartApp(vm: AppViewModel = viewModel()) {
     HidraSmartTheme {
         val nav = rememberSwipeDismissableNavController()
-        val contexto = LocalContext.current
-        val enSesion = vm.session != null
+        val context = LocalContext.current
+        val inSession = vm.session != null
 
         // Mantener la pantalla encendida mientras se entrena
-        DisposableEffect(enSesion) {
-            val ventana = (contexto as? Activity)?.window
-            if (enSesion) ventana?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            else ventana?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        DisposableEffect(inSession) {
+            val window = (context as? Activity)?.window
+            if (inSession) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             onDispose { }
         }
 
@@ -58,23 +58,23 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
         }
 
         // Al registrar una toma se muestra la confirmación y se vuelve a quien abrió "Registrar"
-        val alRegistrar: (Int) -> Unit = { ml -> nav.navigate(Routes.confirmation(ml)) }
+        val onLogged: (Int) -> Unit = { ml -> nav.navigate(Routes.confirmation(ml)) }
 
         SwipeDismissableNavHost(navController = nav, startDestination = Routes.HOME) {
             composable(Routes.HOME) {
-                HomeScreen(vm) { ruta -> nav.navigate(ruta) }
+                HomeScreen(vm) { route -> nav.navigate(route) }
             }
             composable(Routes.LOG_INTAKE) {
-                LogIntakeScreen(vm, onLogged = alRegistrar, onCustomAmount = { nav.navigate(Routes.CUSTOM_AMOUNT) })
+                LogIntakeScreen(vm, onLogged = onLogged, onCustomAmount = { nav.navigate(Routes.CUSTOM_AMOUNT) })
             }
             composable(Routes.CUSTOM_AMOUNT) {
-                CustomAmountScreen(vm, onLogged = alRegistrar)
+                CustomAmountScreen(vm, onLogged = onLogged)
             }
             composable(
                 Routes.CONFIRMATION,
                 arguments = listOf(navArgument("ml") { type = NavType.IntType }),
-            ) { entrada ->
-                ConfirmationScreen(ml = entrada.arguments?.getInt("ml") ?: 0) {
+            ) { entry ->
+                ConfirmationScreen(ml = entry.arguments?.getInt("ml") ?: 0) {
                     nav.popBackStack(Routes.LOG_INTAKE, inclusive = true)
                 }
             }
@@ -98,7 +98,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
             composable(Routes.CONFIRM_END) {
                 ConfirmEndScreen(
                     end = {
-                        val id = vm.terminarSesion()
+                        val id = vm.endSession()
                         if (id != null) {
                             nav.navigate(Routes.summary(id)) { popUpTo(Routes.HOME) }
                         } else {
@@ -111,24 +111,24 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
             composable(
                 Routes.SUMMARY,
                 arguments = listOf(navArgument("id") { type = NavType.LongType }),
-            ) { entrada ->
-                SummaryScreen(vm, id = entrada.arguments?.getLong("id") ?: 0L) {
+            ) { entry ->
+                SummaryScreen(vm, id = entry.arguments?.getLong("id") ?: 0L) {
                     nav.popBackStack(Routes.HOME, inclusive = false)
                 }
             }
             composable(Routes.HISTORY) {
                 HistoryScreen(vm) { date -> nav.navigate(Routes.day(date)) }
             }
-            composable(Routes.DAY) { entrada ->
-                DayDetailScreen(vm, date = entrada.arguments?.getString("fecha") ?: "") { id ->
+            composable(Routes.DAY) { entry ->
+                DayDetailScreen(vm, date = entry.arguments?.getString("fecha") ?: "") { id ->
                     nav.navigate(Routes.sessionDetail(id))
                 }
             }
             composable(
                 Routes.SESSION_DETAIL,
                 arguments = listOf(navArgument("id") { type = NavType.LongType }),
-            ) { entrada ->
-                SessionDetailScreen(vm, id = entrada.arguments?.getLong("id") ?: 0L)
+            ) { entry ->
+                SessionDetailScreen(vm, id = entry.arguments?.getLong("id") ?: 0L)
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -137,8 +137,8 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
                     onOpenSweatTest = { nav.navigate(Routes.SWEAT_TEST) },
                 )
             }
-            composable(Routes.EDIT_FIELD) { entrada ->
-                val field = runCatching { ProfileField.valueOf(entrada.arguments?.getString("campo") ?: "") }
+            composable(Routes.EDIT_FIELD) { entry ->
+                val field = runCatching { ProfileField.valueOf(entry.arguments?.getString("campo") ?: "") }
                     .getOrDefault(ProfileField.WEIGHT)
                 EditFieldScreen(vm, field) { nav.popBackStack() }
             }

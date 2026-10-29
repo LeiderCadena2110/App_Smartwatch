@@ -36,32 +36,32 @@ object AlarmScheduler {
     private val VIBRATION_PATTERN = longArrayOf(0, 500, 250, 500, 250, 800)
 
     /** Programa la próxima alerta a una hora exacta. */
-    fun schedule(contexto: Context, triggerAt: Long) {
-        val alarmManager = contexto.getSystemService(AlarmManager::class.java) ?: return
-        val trigger = receiverIntent(contexto, ACTION_ALARM, 1)
+    fun schedule(context: Context, triggerAt: Long) {
+        val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return
+        val trigger = receiverIntent(context, ACTION_ALARM, 1)
         val canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
         if (canExact) {
             // Las alarmas tipo "despertador" no se retrasan aunque el reloj esté en reposo
-            alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAt, openAppIntent(contexto)), trigger)
+            alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAt, openAppIntent(context)), trigger)
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, trigger)
         }
     }
 
-    fun cancel(contexto: Context) {
-        contexto.getSystemService(AlarmManager::class.java)?.cancel(receiverIntent(contexto, ACTION_ALARM, 1))
+    fun cancel(context: Context) {
+        context.getSystemService(AlarmManager::class.java)?.cancel(receiverIntent(context, ACTION_ALARM, 1))
     }
 
     /** Muestra la alerta sobre la esfera, con sonido, vibración y botones de respuesta. */
     @SuppressLint("MissingPermission")
-    fun showAlert(contexto: Context, alert: IntakeAlert) {
-        createChannel(contexto)
+    fun showAlert(context: Context, alert: IntakeAlert) {
+        createChannel(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(contexto, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
 
         val text = alert.ml?.let { "Toma $it ml de agua" } ?: "Toma agua según tu sed"
-        val notification = NotificationCompat.Builder(contexto, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_gota)
             .setContentTitle("¡Hora de hidratarte!")
             .setContentText(text)
@@ -69,15 +69,15 @@ object AlarmScheduler {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVibrate(VIBRATION_PATTERN)
             .setOngoing(true)
-            .setContentIntent(alertScreenIntent(contexto))
-            .setFullScreenIntent(alertScreenIntent(contexto), true)
-            .addAction(R.drawable.ic_gota, "Ya tomé", receiverIntent(contexto, ACTION_DRANK, 2))
-            .addAction(R.drawable.ic_gota, "En 5 min", receiverIntent(contexto, ACTION_SNOOZE, 3))
+            .setContentIntent(alertScreenIntent(context))
+            .setFullScreenIntent(alertScreenIntent(context), true)
+            .addAction(R.drawable.ic_gota, "Ya tomé", receiverIntent(context, ACTION_DRANK, 2))
+            .addAction(R.drawable.ic_gota, "En 5 min", receiverIntent(context, ACTION_SNOOZE, 3))
             .build()
         try {
             // Quitar la anterior para que vuelva a sonar y a abrir la pantalla completa
-            NotificationManagerCompat.from(contexto).cancel(NOTIFICATION_ID)
-            NotificationManagerCompat.from(contexto).notify(NOTIFICATION_ID, notification)
+            NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
         } catch (e: SecurityException) {
             // Sin permiso de notificaciones: la alerta se verá al abrir la app
         }
@@ -87,11 +87,11 @@ object AlarmScheduler {
      * Abre la pantalla de alerta encima de la esfera. Si Android no deja abrirla desde
      * segundo plano, la notificación de pantalla completa se encarga.
      */
-    fun openAlertScreen(contexto: Context) {
+    fun openAlertScreen(context: Context) {
         if (MainActivity.visible || AlertActivity.visible) return
         try {
-            contexto.startActivity(
-                Intent(contexto, AlertActivity::class.java)
+            context.startActivity(
+                Intent(context, AlertActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             )
         } catch (e: Exception) {
@@ -99,11 +99,11 @@ object AlarmScheduler {
         }
     }
 
-    fun dismissNotification(contexto: Context) {
-        NotificationManagerCompat.from(contexto).cancel(NOTIFICATION_ID)
+    fun dismissNotification(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
     }
 
-    fun createChannel(contexto: Context) {
+    fun createChannel(context: Context) {
         val channel = NotificationChannel(CHANNEL_ID, "Alertas de hidratación", NotificationManager.IMPORTANCE_HIGH).apply {
             description = "Avisa cuándo y cuánto tomar agua durante el entrenamiento"
             enableVibration(true)
@@ -116,34 +116,34 @@ object AlarmScheduler {
                     .build(),
             )
         }
-        contexto.getSystemService(NotificationManager::class.java)?.apply {
+        context.getSystemService(NotificationManager::class.java)?.apply {
             deleteNotificationChannel(LEGACY_CHANNEL_ID)
             createNotificationChannel(channel)
         }
     }
 
-    private fun receiverIntent(contexto: Context, action: String, code: Int): PendingIntent =
+    private fun receiverIntent(context: Context, action: String, code: Int): PendingIntent =
         PendingIntent.getBroadcast(
-            contexto,
+            context,
             code,
-            Intent(contexto, AlertReceiver::class.java).setAction(action),
+            Intent(context, AlertReceiver::class.java).setAction(action),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    private fun alertScreenIntent(contexto: Context): PendingIntent =
+    private fun alertScreenIntent(context: Context): PendingIntent =
         PendingIntent.getActivity(
-            contexto,
+            context,
             4,
-            Intent(contexto, AlertActivity::class.java)
+            Intent(context, AlertActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    private fun openAppIntent(contexto: Context): PendingIntent =
+    private fun openAppIntent(context: Context): PendingIntent =
         PendingIntent.getActivity(
-            contexto,
+            context,
             0,
-            Intent(contexto, MainActivity::class.java)
+            Intent(context, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

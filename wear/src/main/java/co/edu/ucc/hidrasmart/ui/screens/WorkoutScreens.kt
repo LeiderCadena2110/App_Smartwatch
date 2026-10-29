@@ -42,13 +42,13 @@ private val WORKOUT_TYPES = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
 /** Elige el tipo de entrenamiento. Antes de empezar pide el permiso de sensores. */
 @Composable
 fun WorkoutTypeScreen(vm: AppViewModel, onStarted: () -> Unit) {
-    val contexto = LocalContext.current
+    val context = LocalContext.current
     var pendingType by remember { mutableStateOf<String?>(null) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         // Con o sin permisos se puede entrenar: sin sensor la FC es simulada y sin notificaciones
         // la alerta solo se ve con la app abierta
         pendingType?.let { type ->
-            vm.iniciarSesion(type)
+            vm.startSession(type)
             onStarted()
         }
     }
@@ -58,8 +58,8 @@ fun WorkoutTypeScreen(vm: AppViewModel, onStarted: () -> Unit) {
         WORKOUT_TYPES.forEach { type ->
             item {
                 ActionChip(type, AppColors.Blue, {
-                    if (Sensors.hasPermissions(contexto)) {
-                        vm.iniciarSesion(type)
+                    if (Sensors.hasPermissions(context)) {
+                        vm.startSession(type)
                         onStarted()
                     } else {
                         pendingType = type
@@ -68,7 +68,7 @@ fun WorkoutTypeScreen(vm: AppViewModel, onStarted: () -> Unit) {
                 })
             }
         }
-        if (AlertDiagnostics.allGood(contexto)) {
+        if (AlertDiagnostics.allGood(context)) {
             item { Note("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
         } else {
             item { Note("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", AppColors.Amber) }
@@ -95,12 +95,12 @@ fun SessionScreen(
     val paused = s.pausedSince != null
     val remainingMs = (s.nextAlertAt - vm.now).coerceAtLeast(0)
     val ml = vm.mlPerAlert()
-    val conditions = vm.condicionesActuales()
-    val reading = vm.fc
+    val conditions = vm.currentConditions()
+    val reading = vm.heartRate
 
     WearScreen {
         item { Note(if (paused) "${s.type} · EN PAUSA" else s.type, if (paused) AppColors.Amber else Color.LightGray) }
-        item { Text(formatDuration(vm.duracionMs(s)), style = MaterialTheme.typography.display3) }
+        item { Text(formatDuration(vm.durationMs(s)), style = MaterialTheme.typography.display3) }
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(Icons.Default.Favorite, contentDescription = "Frecuencia cardíaca", tint = AppColors.Red)
@@ -137,7 +137,7 @@ fun SessionScreen(
         if (!paused && vm.alert == null) {
             item {
                 ActionChip(
-                    "Probar alarma (10 s)", AppColors.Gray, vm::probarAlarma,
+                    "Probar alarma (10 s)", AppColors.Gray, vm::testAlarm,
                     detail = "Sal a la esfera y espera",
                 )
             }

@@ -44,40 +44,40 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var sessions by mutableStateOf(repo.sessions())
         private set
-    var clima by mutableStateOf<Weather?>(repo.lastWeather())
+    var weather by mutableStateOf<Weather?>(repo.lastWeather())
         private set
-    var mensajeClima by mutableStateOf<String?>(null)
+    var weatherMessage by mutableStateOf<String?>(null)
         private set
     var session by mutableStateOf<ActiveSession?>(repo.activeSession())
         private set
     var alert by mutableStateOf<IntakeAlert?>(repo.pendingAlert())
         private set
-    var fc by mutableStateOf<HeartRateReading?>(null)
+    var heartRate by mutableStateOf<HeartRateReading?>(null)
         private set
-    var altitudSensor by mutableStateOf<Double?>(null)
+    var sensorAltitude by mutableStateOf<Double?>(null)
         private set
     var now by mutableLongStateOf(System.currentTimeMillis())
         private set
 
-    private var trabajosSensores: List<Job> = emptyList()
-    private var fcSumaPendiente = 0L
-    private var fcLecturasPendientes = 0
+    private var sensorJobs: List<Job> = emptyList()
+    private var pendingHeartRateSum = 0L
+    private var pendingHeartRateReadings = 0
 
     // Cuando la alarma o un botón de la notificación cambian algo, la pantalla se actualiza sola
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key !in HydrationRepository.READING_KEYS) recargar()
+        if (key !in HydrationRepository.READING_KEYS) reload()
     }
 
-    val totalHoyMl: Int
+    val todayTotalMl: Int
         get() {
-            val hoy = LocalDate.now()
-            return intakes.filter { it.timestamp.toLocalDate() == hoy }.sumOf { it.ml }
+            val today = LocalDate.now()
+            return intakes.filter { it.timestamp.toLocalDate() == today }.sumOf { it.ml }
         }
 
     init {
         repo.listen(listener)
-        actualizarClima()
-        if (session != null) encenderSensores()
+        refreshWeather()
+        if (session != null) startSensors()
         // Reloj de la pantalla (cronómetro y cuenta regresiva)
         viewModelScope.launch {
             while (isActive) {
@@ -88,19 +88,19 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
-        guardarLecturasPendientes()
+        flushReadings()
         repo.stopListening(listener)
     }
 
-    private fun recargar() {
+    private fun reload() {
         profile = repo.profile()
         isProfileConfigured = repo.isProfileConfigured()
         intakes = repo.intakes()
         sessions = repo.sessions()
-        clima = repo.lastWeather()
+        weather = repo.lastWeather()
         session = repo.activeSession()
         alert = repo.pendingAlert()
-        if (session == null && trabajosSensores.isNotEmpty()) apagarSensores()
+        if (session == null && sensorJobs.isNotEmpty()) stopSensors()
     }
 
     // ---------------- Perfil y prueba de sudoración ----------------
@@ -110,139 +110,139 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         profile = p
         isProfileConfigured = true
         SessionEngine.adjustInterval(getApplication<Application>())
-        recargar()
+        reload()
     }
 
     /** Calcula la tasa con la fórmula NATA y la guarda junto con las condiciones de hoy. */
-    fun guardarPrueba(sweatTest: SweatTest): Result<Double> = runCatching {
+    fun saveSweatTest(sweatTest: SweatTest): Result<Double> = runCatching {
         val rate = HydrationCalculator.sweatRate(sweatTest)
-        val conditions = condicionesActuales().copy(heartRateBpm = null)
+        val conditions = currentConditions().copy(heartRateBpm = null)
         saveProfile(profile.copy(sweatRateLh = rate, testConditions = conditions, weightKg = sweatTest.initialWeightKg))
         rate
     }
 
     // ---------------- Clima y condiciones ----------------
 
-    fun actualizarClima() {
+    fun refreshWeather() {
         val key = BuildConfig.OPENWEATHER_API_KEY
         if (key.isBlank()) {
-            mensajeClima = "Sin clave de clima: se usan los valores manuales"
+            weatherMessage = "Sin clave de clima: se usan los valores manuales"
             return
         }
         viewModelScope.launch {
             try {
                 val c = WeatherService.fetch(profile.city, key)
                 repo.saveWeather(c)
-                clima = c
-                mensajeClima = null
+                weather = c
+                weatherMessage = null
             } catch (e: Exception) {
-                mensajeClima = "Sin conexión: se usa el último clima guardado"
+                weatherMessage = "Sin conexión: se usa el último clima guardado"
             }
         }
     }
 
-    fun condicionesActuales(): Conditions = Conditions(
-        altitudeM = altitudSensor ?: profile.usualAltitudeM,
-        temperatureC = clima?.temperatureC ?: profile.manualTemperatureC,
-        humidityPct = clima?.humidityPct ?: profile.manualHumidityPct,
-        heartRateBpm = fc?.bpm,
+    fun currentConditions(): Conditions = Conditions(
+        altitudeM = sensorAltitude ?: profile.usualAltitudeM,
+        temperatureC = weather?.temperatureC ?: profile.manualTemperatureC,
+        humidityPct = weather?.humidityPct ?: profile.manualHumidityPct,
+        heartRateBpm = heartRate?.bpm,
     )
 
-    fun factorActual(): Factor =
-        HydrationCalculator.factor(condicionesActuales(), profile.testConditions, profile.age)
+    fun currentFactor(): Factor =
+        HydrationCalculator.factor(currentConditions(), profile.testConditions, profile.age)
 
     fun mlPerAlert(): Int? = profile.sweatRateLh?.let {
-        HydrationCalculator.mlPerAlert(it, factorActual().value, profile.intervalMin)
+        HydrationCalculator.mlPerAlert(it, currentFactor().value, profile.intervalMin)
     }
 
     // ---------------- Tomas de agua ----------------
 
     fun logIntake(ml: Int) {
         SessionEngine.logIntake(getApplication<Application>(), ml)
-        recargar()
+        reload()
     }
 
     // ---------------- Entrenamiento ----------------
 
-    fun iniciarSesion(type: String) {
+    fun startSession(type: String) {
         SessionEngine.start(getApplication<Application>(), type)
-        recargar() // al instante, sin esperar el aviso de cambios
-        actualizarClima()
-        encenderSensores()
+        reload() // al instante, sin esperar el aviso de cambios
+        refreshWeather()
+        startSensors()
     }
 
     fun togglePause() {
         SessionEngine.togglePause(getApplication<Application>())
-        recargar()
+        reload()
     }
 
-    fun duracionMs(s: ActiveSession): Long = ((s.pausedSince ?: now) - s.startTime - s.pausedMs).coerceAtLeast(0)
+    fun durationMs(s: ActiveSession): Long = ((s.pausedSince ?: now) - s.startTime - s.pausedMs).coerceAtLeast(0)
 
     fun markDrank() {
         SessionEngine.markDrank(getApplication<Application>())
-        recargar()
+        reload()
     }
 
     fun snooze() {
         SessionEngine.snooze(getApplication<Application>())
-        recargar()
+        reload()
     }
 
     /** Programa la alarma real en 10 s: da tiempo de salir a la esfera para probarla. */
-    fun probarAlarma() {
-        guardarLecturasPendientes()
+    fun testAlarm() {
+        flushReadings()
         SessionEngine.scheduleTest(getApplication<Application>())
-        recargar()
+        reload()
     }
 
     /** Termina, guarda en el historial y devuelve el id de la sesión guardada. */
-    fun terminarSesion(): Long? {
-        guardarLecturasPendientes()
-        apagarSensores()
+    fun endSession(): Long? {
+        flushReadings()
+        stopSensors()
         val id = SessionEngine.end(getApplication<Application>())
-        recargar()
+        reload()
         return id
     }
 
     // ---------------- Sensores ----------------
 
-    private fun encenderSensores() {
-        if (trabajosSensores.isNotEmpty()) return
+    private fun startSensors() {
+        if (sensorJobs.isNotEmpty()) return
         val app = getApplication<Application>()
-        trabajosSensores = listOf(
+        sensorJobs = listOf(
             viewModelScope.launch {
                 Sensors.heartRate(app).collect { reading ->
-                    fc = reading
+                    heartRate = reading
                     if (session?.pausedSince == null) {
-                        fcSumaPendiente += reading.bpm
-                        fcLecturasPendientes++
+                        pendingHeartRateSum += reading.bpm
+                        pendingHeartRateReadings++
                     }
                 }
             },
             viewModelScope.launch {
-                Sensors.altitude(app).collect { altitudSensor = it }
+                Sensors.altitude(app).collect { sensorAltitude = it }
             },
             // Cada 30 s se guardan las lecturas: así la alarma calcula con datos recientes
             viewModelScope.launch {
                 while (isActive) {
                     delay(30_000)
-                    guardarLecturasPendientes()
+                    flushReadings()
                 }
             },
         )
     }
 
-    private fun apagarSensores() {
-        trabajosSensores.forEach { it.cancel() }
-        trabajosSensores = emptyList()
-        fc = null
+    private fun stopSensors() {
+        sensorJobs.forEach { it.cancel() }
+        sensorJobs = emptyList()
+        heartRate = null
     }
 
-    private fun guardarLecturasPendientes() {
+    private fun flushReadings() {
         val app = getApplication<Application>()
-        repo.saveReadings(fc?.bpm, altitudSensor)
-        SessionEngine.addHeartRate(app, fcSumaPendiente, fcLecturasPendientes)
-        fcSumaPendiente = 0
-        fcLecturasPendientes = 0
+        repo.saveReadings(heartRate?.bpm, sensorAltitude)
+        SessionEngine.addHeartRate(app, pendingHeartRateSum, pendingHeartRateReadings)
+        pendingHeartRateSum = 0
+        pendingHeartRateReadings = 0
     }
 }

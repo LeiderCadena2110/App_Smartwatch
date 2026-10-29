@@ -17,9 +17,9 @@ import org.json.JSONObject
  * Guarda todo en el reloj (SharedPreferences con JSON). La app funciona sin internet
  * y sin teléfono. Para muchos datos se podría migrar a Room más adelante.
  */
-class HydrationRepository(contexto: Context) {
+class HydrationRepository(context: Context) {
 
-    private val prefs = contexto.getSharedPreferences("hidrasmart", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("hidrasmart", Context.MODE_PRIVATE)
 
     // ---------- Perfil ----------
     fun isProfileConfigured(): Boolean = prefs.contains(PROFILE)
@@ -84,7 +84,7 @@ class HydrationRepository(contexto: Context) {
             val o = JSONObject()
                 .put("id", it.id).put("tipo", it.type).put("inicio", it.startTime).put("fin", it.endTime)
                 .put("duracionSeg", it.durationSec).put("tomadoMl", it.drankMl).put("recomendadoMl", it.recommendedMl)
-            it.avgHeartRate?.let { fc -> o.put("fcMedia", fc) }
+            it.avgHeartRate?.let { heartRate -> o.put("fcMedia", heartRate) }
             o
         }
     }
@@ -164,9 +164,9 @@ class HydrationRepository(contexto: Context) {
     fun lastAltitude(): Double? =
         if (prefs.contains(LAST_ALTITUDE)) prefs.getFloat(LAST_ALTITUDE, 0f).toDouble() else null
 
-    fun saveReadings(fc: Int?, altitude: Double?) {
+    fun saveReadings(heartRate: Int?, altitude: Double?) {
         val e = prefs.edit()
-        if (fc != null) e.putInt(LAST_HEART_RATE, fc)
+        if (heartRate != null) e.putInt(LAST_HEART_RATE, heartRate)
         if (altitude != null) e.putFloat(LAST_ALTITUDE, altitude.toFloat())
         e.apply()
     }

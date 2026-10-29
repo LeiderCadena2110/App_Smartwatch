@@ -32,7 +32,7 @@ private val QUICK_AMOUNTS = listOf(150, 250, 500)
 @Composable
 fun LogIntakeScreen(vm: AppViewModel, onLogged: (Int) -> Unit, onCustomAmount: () -> Unit) {
     WearScreen {
-        item { ScreenTitle("Registrar toma", "Hoy: ${vm.totalHoyMl.withThousands()} ml") }
+        item { ScreenTitle("Registrar toma", "Hoy: ${vm.todayTotalMl.withThousands()} ml") }
         QUICK_AMOUNTS.forEach { ml ->
             item {
                 ActionChip("+$ml ml", AppColors.Water, {

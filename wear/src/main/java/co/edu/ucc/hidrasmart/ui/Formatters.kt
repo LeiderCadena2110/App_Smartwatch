@@ -7,10 +7,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val es: Locale = Locale.forLanguageTag("es-CO")
+private val spanishLocale: Locale = Locale.forLanguageTag("es-CO")
 private val zone: ZoneId = ZoneId.systemDefault()
-private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", es)
-private val dayFormatter = DateTimeFormatter.ofPattern("EEE d MMM", es)
+private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", spanishLocale)
+private val dayFormatter = DateTimeFormatter.ofPattern("EEE d MMM", spanishLocale)
 
 fun Long.toLocalDate(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 
@@ -23,10 +23,10 @@ fun LocalDate.displayName(): String = when (this) {
 }
 
 /** 1250 → "1.250" */
-fun Int.withThousands(): String = NumberFormat.getIntegerInstance(es).format(this)
+fun Int.withThousands(): String = NumberFormat.getIntegerInstance(spanishLocale).format(this)
 
 /** 1.25 → "1,3" con [decimales] decimales */
-fun Double.toFixed(digits: Int = 1): String = String.format(es, "%.${digits}f", this)
+fun Double.toFixed(digits: Int = 1): String = String.format(spanishLocale, "%.${digits}f", this)
 
 /** 3725000 ms → "1:02:05"; 125000 → "02:05" */
 fun formatDuration(ms: Long): String {
@@ -34,5 +34,5 @@ fun formatDuration(ms: Long): String {
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
     val s = totalSeconds % 60
-    return if (h > 0) String.format(es, "%d:%02d:%02d", h, m, s) else String.format(es, "%02d:%02d", m, s)
+    return if (h > 0) String.format(spanishLocale, "%d:%02d:%02d", h, m, s) else String.format(spanishLocale, "%02d:%02d", m, s)
 }

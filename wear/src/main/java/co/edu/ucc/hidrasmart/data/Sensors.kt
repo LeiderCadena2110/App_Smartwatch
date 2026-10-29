@@ -31,19 +31,19 @@ object Sensors {
             arrayOf(HEART_RATE_PERMISSION)
         }
 
-    fun hasPermissions(contexto: Context): Boolean = workoutPermissions().all {
-        ContextCompat.checkSelfPermission(contexto, it) == PackageManager.PERMISSION_GRANTED
+    fun hasPermissions(context: Context): Boolean = workoutPermissions().all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun hasHeartRatePermission(contexto: Context): Boolean =
-        ContextCompat.checkSelfPermission(contexto, HEART_RATE_PERMISSION) == PackageManager.PERMISSION_GRANTED
+    fun hasHeartRatePermission(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, HEART_RATE_PERMISSION) == PackageManager.PERMISSION_GRANTED
 
     /** Frecuencia cardíaca en tiempo real. Si no hay sensor o permiso, genera valores de demostración. */
-    fun heartRate(contexto: Context): Flow<HeartRateReading> = callbackFlow {
-        val sensorManager = contexto.getSystemService(SensorManager::class.java)
+    fun heartRate(context: Context): Flow<HeartRateReading> = callbackFlow {
+        val sensorManager = context.getSystemService(SensorManager::class.java)
         val sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE)
 
-        if (sensorManager == null || sensor == null || !hasHeartRatePermission(contexto)) {
+        if (sensorManager == null || sensor == null || !hasHeartRatePermission(context)) {
             val simulator = launch {
                 var bpm = 110
                 while (isActive) {
@@ -68,8 +68,8 @@ object Sensors {
     }
 
     /** Altitud estimada con el barómetro. Si el reloj no tiene barómetro, no emite nada. */
-    fun altitude(contexto: Context): Flow<Double> = callbackFlow {
-        val sensorManager = contexto.getSystemService(SensorManager::class.java)
+    fun altitude(context: Context): Flow<Double> = callbackFlow {
+        val sensorManager = context.getSystemService(SensorManager::class.java)
         val sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE)
         if (sensorManager == null || sensor == null) {
             close()

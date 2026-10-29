@@ -17,7 +17,7 @@ object HydrationCalculator {
 
     const val MAX_FACTOR = 1.3
     private const val FACTOR_STEP = 0.1
-    private val es = Locale.forLanguageTag("es-CO")
+    private val spanishLocale = Locale.forLanguageTag("es-CO")
 
     /** Tasa de sudoración en litros por hora. Lanza IllegalArgumentException si los datos no tienen sentido. */
     fun sweatRate(p: SweatTest): Double {
@@ -27,7 +27,7 @@ object HydrationCalculator {
         val lossLiters = (p.initialWeightKg - p.finalWeightKg) + p.fluidMl / 1000.0 - p.urineMl / 1000.0
         val rate = lossLiters / (p.durationMin / 60.0)
         require(rate in 0.05..4.0) {
-            "Resultado fuera de rango (${String.format(es, "%.2f", rate)} L/h): revisa los datos"
+            "Resultado fuera de rango (${String.format(spanishLocale, "%.2f", rate)} L/h): revisa los datos"
         }
         return rate
     }
@@ -54,8 +54,8 @@ object HydrationCalculator {
             val testTemp = sweatTest.temperatureC
             if (currentTemp != null && testTemp != null && currentTemp > testTemp + 5) reasons += "Más de 5 °C sobre la prueba"
         }
-        val fc = current.heartRateBpm
-        if (fc != null && fc > 0.85 * maxHeartRate(age)) reasons += "Frecuencia cardíaca alta"
+        val heartRate = current.heartRateBpm
+        if (heartRate != null && heartRate > 0.85 * maxHeartRate(age)) reasons += "Frecuencia cardíaca alta"
 
         val value = min(1.0 + FACTOR_STEP * reasons.size, MAX_FACTOR)
         return Factor(value, reasons)

@@ -27,7 +27,7 @@ import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 @Composable
 fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
-    val total = vm.totalHoyMl
+    val total = vm.todayTotalMl
     val goal = vm.profile.dailyGoalMl
     val session = vm.session
 
@@ -41,7 +41,7 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
             item {
                 ActionChip(
                     "Volver a la sesión", AppColors.Blue, { onNavigate(Routes.SESSION) },
-                    detail = "${session.type} · ${formatDuration(vm.duracionMs(session))}",
+                    detail = "${session.type} · ${formatDuration(vm.durationMs(session))}",
                     icon = Icons.Default.PlayArrow,
                 )
             }

@@ -6,15 +6,15 @@ import android.content.Intent
 
 /** Recibe la alarma y los botones de la notificación, aunque la app esté cerrada. */
 class AlertReceiver : BroadcastReceiver() {
-    override fun onReceive(contexto: Context, intent: Intent) {
+    override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             AlarmScheduler.ACTION_ALARM -> {
-                SessionEngine.fireAlert(contexto)
+                SessionEngine.fireAlert(context)
                 // Además de la notificación de pantalla completa, intentar abrir la alerta directamente
-                AlarmScheduler.openAlertScreen(contexto)
+                AlarmScheduler.openAlertScreen(context)
             }
-            AlarmScheduler.ACTION_DRANK -> SessionEngine.markDrank(contexto)
-            AlarmScheduler.ACTION_SNOOZE -> SessionEngine.snooze(contexto)
+            AlarmScheduler.ACTION_DRANK -> SessionEngine.markDrank(context)
+            AlarmScheduler.ACTION_SNOOZE -> SessionEngine.snooze(context)
         }
     }
 }
