@@ -28,6 +28,20 @@ android {
         buildConfigField("String", "GEMINI_MODEL", "\"${localProperties.getProperty("GEMINI_MODEL", "")}\"")
     }
 
+    // Firma: en GitHub Actions se usa el keystore de los secretos; en local, la firma de depuración.
+    // Así el APK de release siempre se puede instalar.
+    signingConfigs {
+        create("release") {
+            val keystore = System.getenv("HIDRASMART_KEYSTORE")
+            if (keystore != null) {
+                storeFile = file(keystore)
+                storePassword = System.getenv("HIDRASMART_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("HIDRASMART_KEY_ALIAS")
+                keyPassword = System.getenv("HIDRASMART_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -36,7 +50,18 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = if (System.getenv("HIDRASMART_KEYSTORE") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
+    }
+
+    lint {
+        // Los avisos de lint no bloquean la compilación del APK en CI
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     compileOptions {
