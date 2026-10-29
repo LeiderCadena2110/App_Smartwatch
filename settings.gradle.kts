@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "HidraSmart"
 include(":core")
 include(":wear")
+include(":mobile")
