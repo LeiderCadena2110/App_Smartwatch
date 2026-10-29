@@ -27,17 +27,20 @@ import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
 import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
-import co.edu.ucc.hidrasmart.ui.RoundButton
-import co.edu.ucc.hidrasmart.ui.ActionChip
-import co.edu.ucc.hidrasmart.ui.Note
-import co.edu.ucc.hidrasmart.ui.WearScreen
-import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.formatDuration
+import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.ui.ActionChip
+import co.edu.ucc.hidrasmart.ui.EdgeProgress
+import co.edu.ucc.hidrasmart.ui.InsightCard
+import co.edu.ucc.hidrasmart.ui.Note
+import co.edu.ucc.hidrasmart.ui.RoundButton
+import co.edu.ucc.hidrasmart.ui.ScreenTitle
+import co.edu.ucc.hidrasmart.ui.WearScreen
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
-private val WORKOUT_TYPES = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
+/** Tipos de entrenamiento (también los usa el planificador de IA). */
+internal val WORKOUT_TYPES = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
 
 /** Elige el tipo de entrenamiento. Antes de empezar pide el permiso de sensores. */
 @Composable
@@ -98,7 +101,13 @@ fun SessionScreen(
     val conditions = vm.currentConditions()
     val reading = vm.heartRate
 
-    WearScreen {
+    val intervalMs = vm.profile.intervalMin * 60_000f
+    WearScreen(
+        edge = {
+            // Arco en el borde que se vacía hasta la próxima toma
+            if (!paused && intervalMs > 0) EdgeProgress(remainingMs / intervalMs, AppColors.LightWater)
+        },
+    ) {
         item { Note(if (paused) "${s.type} · EN PAUSA" else s.type, if (paused) AppColors.Amber else Color.LightGray) }
         item { Text(formatDuration(vm.durationMs(s)), style = MaterialTheme.typography.display3) }
         item {
@@ -211,6 +220,10 @@ fun ConfirmEndScreen(end: () -> Unit, cancel: () -> Unit) {
 @Composable
 fun SummaryScreen(vm: AppViewModel, id: Long, onDone: () -> Unit) {
     val s = vm.sessions.firstOrNull { it.id == id }
+    // Análisis de IA del entrenamiento que acaba de terminar
+    LaunchedEffect(id) {
+        vm.askCoach("Analiza el entrenamiento que acabo de terminar y dame un consejo para recuperarme.")
+    }
     WearScreen {
         item { ScreenTitle("Resumen", s?.type) }
         if (s != null) {
@@ -224,6 +237,12 @@ fun SummaryScreen(vm: AppViewModel, id: Long, onDone: () -> Unit) {
                 )
             }
             item { Note("Guardado en el historial") }
+            val analysis = vm.coachAnswer
+            if (vm.coachLoading) {
+                item { Note("Analizando con IA…", AppColors.AiLight) }
+            } else if (analysis != null) {
+                item { InsightCard("Análisis IA", analysis.text, AppColors.Ai) }
+            }
         }
         item { ActionChip("Listo", AppColors.Green, onDone) }
     }
