@@ -1,15 +1,15 @@
-package co.edu.ucc.hidrasmart.datos
+package co.edu.ucc.hidrasmart.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import co.edu.ucc.hidrasmart.dominio.AlertaToma
-import co.edu.ucc.hidrasmart.dominio.Clima
-import co.edu.ucc.hidrasmart.dominio.Condiciones
-import co.edu.ucc.hidrasmart.dominio.Factor
-import co.edu.ucc.hidrasmart.dominio.Perfil
-import co.edu.ucc.hidrasmart.dominio.SesionEnCurso
-import co.edu.ucc.hidrasmart.dominio.SesionGuardada
-import co.edu.ucc.hidrasmart.dominio.Toma
+import co.edu.ucc.hidrasmart.domain.AlertaToma
+import co.edu.ucc.hidrasmart.domain.Clima
+import co.edu.ucc.hidrasmart.domain.Condiciones
+import co.edu.ucc.hidrasmart.domain.Factor
+import co.edu.ucc.hidrasmart.domain.Perfil
+import co.edu.ucc.hidrasmart.domain.SesionEnCurso
+import co.edu.ucc.hidrasmart.domain.SesionGuardada
+import co.edu.ucc.hidrasmart.domain.Toma
 import org.json.JSONArray
 import org.json.JSONObject
 

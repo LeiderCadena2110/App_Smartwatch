@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +24,7 @@ import co.edu.ucc.hidrasmart.ui.FilaNumero
 import co.edu.ucc.hidrasmart.ui.Pantalla
 import co.edu.ucc.hidrasmart.ui.Titulo
 import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 import kotlinx.coroutines.delay
 
 private val CANTIDADES_RAPIDAS = listOf(150, 250, 500)

@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,9 +24,9 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.alertas.Diagnostico
-import co.edu.ucc.hidrasmart.datos.Sensores
-import co.edu.ucc.hidrasmart.dominio.AlertaToma
+import co.edu.ucc.hidrasmart.alerts.Diagnostico
+import co.edu.ucc.hidrasmart.data.Sensores
+import co.edu.ucc.hidrasmart.domain.AlertaToma
 import co.edu.ucc.hidrasmart.ui.BotonRedondo
 import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.Nota
@@ -35,7 +35,7 @@ import co.edu.ucc.hidrasmart.ui.Titulo
 import co.edu.ucc.hidrasmart.ui.dec
 import co.edu.ucc.hidrasmart.ui.duracion
 import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 
 private val TIPOS = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
 

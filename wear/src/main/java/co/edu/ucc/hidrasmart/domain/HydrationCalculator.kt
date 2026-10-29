@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.dominio
+package co.edu.ucc.hidrasmart.domain
 
 import java.util.Locale
 import kotlin.math.min

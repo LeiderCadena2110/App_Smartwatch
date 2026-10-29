@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.tema
+package co.edu.ucc.hidrasmart.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

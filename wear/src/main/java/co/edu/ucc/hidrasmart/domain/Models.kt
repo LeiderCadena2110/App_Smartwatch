@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.dominio
+package co.edu.ucc.hidrasmart.domain
 
 /** Condiciones en las que se entrena (o en las que se hizo la prueba de sudoración). */
 data class Condiciones(

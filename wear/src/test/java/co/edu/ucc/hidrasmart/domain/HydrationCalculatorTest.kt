@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.dominio
+package co.edu.ucc.hidrasmart.domain
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

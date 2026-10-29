@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.alertas
+package co.edu.ucc.hidrasmart.alerts
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -8,10 +8,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import co.edu.ucc.hidrasmart.datos.Repositorio
-import co.edu.ucc.hidrasmart.dominio.AlertaToma
-import co.edu.ucc.hidrasmart.ui.pantallas.ContenidoAlerta
-import co.edu.ucc.hidrasmart.ui.tema.HidraTema
+import co.edu.ucc.hidrasmart.data.Repositorio
+import co.edu.ucc.hidrasmart.domain.AlertaToma
+import co.edu.ucc.hidrasmart.ui.screens.ContenidoAlerta
+import co.edu.ucc.hidrasmart.ui.theme.HidraTema
 
 /**
  * Pantalla de alerta independiente: se abre sobre la esfera del reloj aunque la app

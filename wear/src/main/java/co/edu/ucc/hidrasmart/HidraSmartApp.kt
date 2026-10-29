@@ -12,24 +12,24 @@ import androidx.navigation.navArgument
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
-import co.edu.ucc.hidrasmart.ui.pantallas.CampoPerfil
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaAlerta
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaConfirmacion
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaConfirmarFin
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaDetalleDia
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaDetalleSesion
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaEditarCampo
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaElegirTipo
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaHistorial
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaInicio
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaOtraCantidad
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaPerfil
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaPrueba
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaRegistrar
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaResumen
-import co.edu.ucc.hidrasmart.ui.pantallas.PantallaSesion
-import co.edu.ucc.hidrasmart.ui.pantallas.Rutas
-import co.edu.ucc.hidrasmart.ui.tema.HidraTema
+import co.edu.ucc.hidrasmart.ui.screens.CampoPerfil
+import co.edu.ucc.hidrasmart.ui.screens.PantallaAlerta
+import co.edu.ucc.hidrasmart.ui.screens.PantallaConfirmacion
+import co.edu.ucc.hidrasmart.ui.screens.PantallaConfirmarFin
+import co.edu.ucc.hidrasmart.ui.screens.PantallaDetalleDia
+import co.edu.ucc.hidrasmart.ui.screens.PantallaDetalleSesion
+import co.edu.ucc.hidrasmart.ui.screens.PantallaEditarCampo
+import co.edu.ucc.hidrasmart.ui.screens.PantallaElegirTipo
+import co.edu.ucc.hidrasmart.ui.screens.PantallaHistorial
+import co.edu.ucc.hidrasmart.ui.screens.PantallaInicio
+import co.edu.ucc.hidrasmart.ui.screens.PantallaOtraCantidad
+import co.edu.ucc.hidrasmart.ui.screens.PantallaPerfil
+import co.edu.ucc.hidrasmart.ui.screens.PantallaPrueba
+import co.edu.ucc.hidrasmart.ui.screens.PantallaRegistrar
+import co.edu.ucc.hidrasmart.ui.screens.PantallaResumen
+import co.edu.ucc.hidrasmart.ui.screens.PantallaSesion
+import co.edu.ucc.hidrasmart.ui.screens.Rutas
+import co.edu.ucc.hidrasmart.ui.theme.HidraTema
 
 /**
  * Navegación de la app: una pila con SwipeDismissableNavHost.

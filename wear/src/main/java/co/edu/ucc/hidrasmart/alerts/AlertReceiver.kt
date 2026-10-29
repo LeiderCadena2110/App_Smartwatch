@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.alertas
+package co.edu.ucc.hidrasmart.alerts
 
 import android.content.BroadcastReceiver
 import android.content.Context

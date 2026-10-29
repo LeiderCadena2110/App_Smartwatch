@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.alertas
+package co.edu.ucc.hidrasmart.alerts
 
 import android.app.AlarmManager
 import android.app.NotificationManager

@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,7 @@ import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.Pantalla
 import co.edu.ucc.hidrasmart.ui.duracion
 import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 
 @Composable
 fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {

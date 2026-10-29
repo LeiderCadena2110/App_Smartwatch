@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,11 +17,11 @@ import android.Manifest
 import android.os.Build
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
-import co.edu.ucc.hidrasmart.alertas.Diagnostico
-import co.edu.ucc.hidrasmart.datos.Sensores
-import co.edu.ucc.hidrasmart.dominio.CalculadoraHidratacion
-import co.edu.ucc.hidrasmart.dominio.Perfil
-import co.edu.ucc.hidrasmart.dominio.PruebaSudoracion
+import co.edu.ucc.hidrasmart.alerts.Diagnostico
+import co.edu.ucc.hidrasmart.data.Sensores
+import co.edu.ucc.hidrasmart.domain.CalculadoraHidratacion
+import co.edu.ucc.hidrasmart.domain.Perfil
+import co.edu.ucc.hidrasmart.domain.PruebaSudoracion
 import co.edu.ucc.hidrasmart.ui.ChipAccion
 import co.edu.ucc.hidrasmart.ui.FilaNumero
 import co.edu.ucc.hidrasmart.ui.Nota
@@ -29,7 +29,7 @@ import co.edu.ucc.hidrasmart.ui.Pantalla
 import co.edu.ucc.hidrasmart.ui.Titulo
 import co.edu.ucc.hidrasmart.ui.dec
 import co.edu.ucc.hidrasmart.ui.miles
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 import kotlin.math.roundToInt
 
 /** Campos numéricos del perfil que se editan con − y +. */

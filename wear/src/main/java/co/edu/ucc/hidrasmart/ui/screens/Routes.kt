@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 /** Rutas de navegación (ver el diagrama de jerarquía de la documentación). */
 object Rutas {

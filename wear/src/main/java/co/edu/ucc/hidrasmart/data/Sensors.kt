@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.datos
+package co.edu.ucc.hidrasmart.data
 
 import android.Manifest
 import android.content.Context

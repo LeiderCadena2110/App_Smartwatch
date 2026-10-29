@@ -35,7 +35,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 
 /** Estructura común de cada pantalla: hora arriba, lista que se escala en los bordes y barra de posición. */
 @Composable

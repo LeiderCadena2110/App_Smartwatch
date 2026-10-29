@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui.pantallas
+package co.edu.ucc.hidrasmart.ui.screens
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -16,7 +16,7 @@ import co.edu.ucc.hidrasmart.ui.duracion
 import co.edu.ucc.hidrasmart.ui.hora
 import co.edu.ucc.hidrasmart.ui.miles
 import co.edu.ucc.hidrasmart.ui.nombre
-import co.edu.ucc.hidrasmart.ui.tema.Colores
+import co.edu.ucc.hidrasmart.ui.theme.Colores
 import java.time.LocalDate
 
 @Composable

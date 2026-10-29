@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.alertas
+package co.edu.ucc.hidrasmart.alerts
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -17,7 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import co.edu.ucc.hidrasmart.MainActivity
 import co.edu.ucc.hidrasmart.R
-import co.edu.ucc.hidrasmart.dominio.AlertaToma
+import co.edu.ucc.hidrasmart.domain.AlertaToma
 
 /**
  * Alarmas del sistema y notificación de alerta.

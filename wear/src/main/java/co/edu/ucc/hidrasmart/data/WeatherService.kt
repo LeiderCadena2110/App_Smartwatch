@@ -1,6 +1,6 @@
-package co.edu.ucc.hidrasmart.datos
+package co.edu.ucc.hidrasmart.data
 
-import co.edu.ucc.hidrasmart.dominio.Clima
+import co.edu.ucc.hidrasmart.domain.Clima
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject

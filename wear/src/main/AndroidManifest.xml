@@ -49,7 +49,7 @@
 
         <!-- Pantalla de alerta que sale sobre la esfera aunque la app esté cerrada -->
         <activity
-            android:name=".alertas.AlertaActivity"
+            android:name=".alerts.AlertaActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
@@ -60,7 +60,7 @@
 
         <!-- Recibe la alarma y los botones "Ya tomé" / "En 5 min" con la app cerrada -->
         <receiver
-            android:name=".alertas.AlertaReceiver"
+            android:name=".alerts.AlertaReceiver"
             android:exported="false" />
     </application>
 </manifest>
