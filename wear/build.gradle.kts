@@ -8,9 +8,9 @@ plugins {
 }
 
 // La clave de OpenWeatherMap se lee de local.properties (ese archivo NO se sube a GitHub)
-val propiedadesLocales = Properties().apply {
-    val archivo = rootProject.file("local.properties")
-    if (archivo.exists()) archivo.inputStream().use { load(it) }
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -26,7 +26,7 @@ android {
         buildConfigField(
             "String",
             "OPENWEATHER_API_KEY",
-            "\"${propiedadesLocales.getProperty("OPENWEATHER_API_KEY", "")}\""
+            "\"${localProperties.getProperty("OPENWEATHER_API_KEY", "")}\""
         )
     }
 

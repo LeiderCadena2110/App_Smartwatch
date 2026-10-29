@@ -62,7 +62,7 @@ object AlarmScheduler {
 
         val text = alert.ml?.let { "Toma $it ml de agua" } ?: "Toma agua según tu sed"
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_gota)
+            .setSmallIcon(R.drawable.ic_water_drop)
             .setContentTitle("¡Hora de hidratarte!")
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -71,8 +71,8 @@ object AlarmScheduler {
             .setOngoing(true)
             .setContentIntent(alertScreenIntent(context))
             .setFullScreenIntent(alertScreenIntent(context), true)
-            .addAction(R.drawable.ic_gota, "Ya tomé", receiverIntent(context, ACTION_DRANK, 2))
-            .addAction(R.drawable.ic_gota, "En 5 min", receiverIntent(context, ACTION_SNOOZE, 3))
+            .addAction(R.drawable.ic_water_drop, "Ya tomé", receiverIntent(context, ACTION_DRANK, 2))
+            .addAction(R.drawable.ic_water_drop, "En 5 min", receiverIntent(context, ACTION_SNOOZE, 3))
             .build()
         try {
             // Quitar la anterior para que vuelva a sonar y a abrir la pantalla completa
