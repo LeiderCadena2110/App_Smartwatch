@@ -1,12 +1,17 @@
 package co.edu.ucc.hidrasmart.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,12 +32,14 @@ import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.TitleCard
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
@@ -41,6 +48,7 @@ import co.edu.ucc.hidrasmart.ui.theme.AppColors
 @Composable
 fun WearScreen(
     listState: ScalingLazyListState = rememberScalingLazyListState(),
+    edge: (@Composable () -> Unit)? = null,
     content: ScalingLazyListScope.() -> Unit,
 ) {
     Scaffold(
@@ -48,11 +56,48 @@ fun WearScreen(
         vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
         positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
     ) {
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            content = content,
-        )
+        Box(Modifier.fillMaxSize()) {
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                content = content,
+            )
+            // Elemento dibujado sobre el borde de la pantalla redonda (por ejemplo, una cuenta regresiva)
+            edge?.invoke()
+        }
+    }
+}
+
+/**
+ * Arco sobre el borde de la pantalla que se vacía con el tiempo. Deja libre la parte
+ * de arriba, donde va la hora.
+ */
+@Composable
+fun EdgeProgress(progress: Float, color: Color) {
+    CircularProgressIndicator(
+        progress = progress.coerceIn(0f, 1f),
+        modifier = Modifier.fillMaxSize().padding(3.dp),
+        startAngle = 300f,
+        endAngle = 240f,
+        indicatorColor = color,
+        trackColor = color.copy(alpha = 0.15f),
+        strokeWidth = 5.dp,
+    )
+}
+
+/** Tarjeta con un hallazgo del coach de IA: punto de color según el riesgo, título y mensaje. */
+@Composable
+fun InsightCard(title: String, message: String, accent: Color, onClick: () -> Unit = {}) {
+    TitleCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        title = {
+            Box(Modifier.size(8.dp).background(accent, CircleShape))
+            Spacer(Modifier.width(6.dp))
+            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.White)
+        },
+    ) {
+        Text(message, style = MaterialTheme.typography.caption2, color = Color.LightGray)
     }
 }
 

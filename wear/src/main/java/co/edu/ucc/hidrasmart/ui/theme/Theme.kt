@@ -15,6 +15,8 @@ object AppColors {
     val Amber = Color(0xFFF9A825)      // Pausar
     val Red = Color(0xFFC62828)       // Terminar
     val DarkGray = Color(0xFF2B2B2B) // Ajustes, historial
+    val Ai = Color(0xFF7E57C2)       // Coach de IA
+    val AiLight = Color(0xFFB39DDB)  // Texto de la IA
 }
 
 @Composable
