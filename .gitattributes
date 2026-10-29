@@ -1,0 +1,9 @@
+# Line endings: keep shell scripts with LF so they run on Linux/CI, Windows scripts with CRLF
+* text=auto
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
+*.jks binary
+*.keystore binary
