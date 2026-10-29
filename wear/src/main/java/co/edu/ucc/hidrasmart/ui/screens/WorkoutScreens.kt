@@ -24,7 +24,7 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
-import co.edu.ucc.hidrasmart.alerts.Diagnostico
+import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
 import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.ui.BotonRedondo
@@ -68,7 +68,7 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
                 })
             }
         }
-        if (Diagnostico.todoBien(contexto)) {
+        if (AlertDiagnostics.allGood(contexto)) {
             item { Nota("Las alertas suenan y vibran aunque cierres la app o se apague la pantalla.") }
         } else {
             item { Nota("⚠ Faltan permisos de alertas: revisa Perfil → Diagnóstico de alertas.", Colores.Ambar) }
@@ -83,17 +83,17 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
 fun PantallaSesion(
     vm: AppViewModel,
     registrar: () -> Unit,
-    terminar: () -> Unit,
+    end: () -> Unit,
     salir: () -> Unit,
     abrirAlerta: () -> Unit,
 ) {
-    val s = vm.sesion
+    val s = vm.session
     if (s == null) {
         LaunchedEffect(Unit) { salir() }
         return
     }
     val pausada = s.pausedSince != null
-    val faltaMs = (s.nextAlertAt - vm.ahora).coerceAtLeast(0)
+    val faltaMs = (s.nextAlertAt - vm.now).coerceAtLeast(0)
     val ml = vm.mlPerAlert()
     val condiciones = vm.condicionesActuales()
     val lectura = vm.fc
@@ -126,15 +126,15 @@ fun PantallaSesion(
             )
         }
         // Si la alerta se cerró deslizando, queda pendiente aquí
-        if (vm.alerta != null) {
+        if (vm.alert != null) {
             item { ChipAccion("Responder alerta", Colores.Verde, abrirAlerta) }
         }
         item { ChipAccion("Registrar toma", Colores.Agua, registrar, icono = Icons.Default.Add) }
         item {
-            ChipAccion(if (pausada) "Reanudar" else "Pausar", if (pausada) Colores.Azul else Colores.Ambar, vm::pausarOReanudar)
+            ChipAccion(if (pausada) "Reanudar" else "Pausar", if (pausada) Colores.Azul else Colores.Ambar, vm::togglePause)
         }
-        item { ChipAccion("Terminar", Colores.Rojo, terminar) }
-        if (!pausada && vm.alerta == null) {
+        item { ChipAccion("Terminar", Colores.Rojo, end) }
+        if (!pausada && vm.alert == null) {
             item {
                 ChipAccion(
                     "Probar alarma (10 s)", Colores.Gris, vm::probarAlarma,
@@ -148,19 +148,19 @@ fun PantallaSesion(
 /** Alerta dentro de la app (cuando la app está abierta). */
 @Composable
 fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
-    val alerta = vm.alerta
-    if (alerta == null) {
+    val alert = vm.alert
+    if (alert == null) {
         LaunchedEffect(Unit) { cerrar() }
         return
     }
     ContenidoAlerta(
-        alerta = alerta,
+        alert = alert,
         onYaTome = {
-            vm.yaTome()
+            vm.markDrank()
             cerrar()
         },
         onPosponer = {
-            vm.posponer()
+            vm.snooze()
             cerrar()
         },
     )
@@ -168,20 +168,20 @@ fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
 
 /** Contenido de la alerta; lo usan la app y la pantalla que sale sobre la esfera. */
 @Composable
-fun ContenidoAlerta(alerta: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> Unit) {
+fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> Unit) {
     Pantalla {
         item { Titulo("¡Hora de hidratarte!") }
         item {
             Text(
-                if (alerta.ml != null) "${alerta.ml} ml" else "Toma según tu sed",
-                style = if (alerta.ml != null) MaterialTheme.typography.display2 else MaterialTheme.typography.title2,
+                if (alert.ml != null) "${alert.ml} ml" else "Toma según tu sed",
+                style = if (alert.ml != null) MaterialTheme.typography.display2 else MaterialTheme.typography.title2,
                 color = Colores.AguaClara,
             )
         }
-        if (alerta.factor.reasons.isNotEmpty()) {
-            item { Nota("Ajuste ×${alerta.factor.value.dec()}: ${alerta.factor.reasons.joinToString(", ")}") }
+        if (alert.factor.reasons.isNotEmpty()) {
+            item { Nota("Ajuste ×${alert.factor.value.dec()}: ${alert.factor.reasons.joinToString(", ")}") }
         }
-        if (alerta.ml == null) {
+        if (alert.ml == null) {
             item { Nota("Haz la prueba de sudoración en Perfil para recibir una cantidad exacta.") }
         }
         item {
@@ -200,11 +200,11 @@ fun ContenidoAlerta(alerta: IntakeAlert, onYaTome: () -> Unit, onPosponer: () ->
 }
 
 @Composable
-fun PantallaConfirmarFin(terminar: () -> Unit, cancelar: () -> Unit) {
+fun PantallaConfirmarFin(end: () -> Unit, cancel: () -> Unit) {
     Pantalla {
         item { Titulo("¿Terminar el entrenamiento?") }
-        item { ChipAccion("Sí, terminar", Colores.Rojo, terminar) }
-        item { ChipAccion("Seguir entrenando", Colores.Gris, cancelar) }
+        item { ChipAccion("Sí, terminar", Colores.Rojo, end) }
+        item { ChipAccion("Seguir entrenando", Colores.Gris, cancel) }
     }
 }
 

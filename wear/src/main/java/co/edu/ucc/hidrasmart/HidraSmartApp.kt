@@ -40,7 +40,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
     HidraTema {
         val nav = rememberSwipeDismissableNavController()
         val contexto = LocalContext.current
-        val enSesion = vm.sesion != null
+        val enSesion = vm.session != null
 
         // Mantener la pantalla encendida mientras se entrena
         DisposableEffect(enSesion) {
@@ -51,8 +51,8 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
         }
 
         // Cuando llega la hora de tomar agua, abrir la alerta desde cualquier pantalla
-        LaunchedEffect(vm.alerta) {
-            if (vm.alerta != null && nav.currentDestination?.route != Rutas.ALERT) {
+        LaunchedEffect(vm.alert) {
+            if (vm.alert != null && nav.currentDestination?.route != Rutas.ALERT) {
                 nav.navigate(Rutas.ALERT)
             }
         }
@@ -87,7 +87,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
                 PantallaSesion(
                     vm,
                     registrar = { nav.navigate(Rutas.REGISTRAR) },
-                    terminar = { nav.navigate(Rutas.CONFIRMAR_FIN) },
+                    end = { nav.navigate(Rutas.CONFIRMAR_FIN) },
                     salir = { nav.popBackStack(Rutas.INICIO, inclusive = false) },
                     abrirAlerta = { nav.navigate(Rutas.ALERT) },
                 )
@@ -97,7 +97,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
             }
             composable(Rutas.CONFIRMAR_FIN) {
                 PantallaConfirmarFin(
-                    terminar = {
+                    end = {
                         val id = vm.terminarSesion()
                         if (id != null) {
                             nav.navigate(Rutas.resumen(id)) { popUpTo(Rutas.INICIO) }
@@ -105,7 +105,7 @@ fun HidraApp(vm: AppViewModel = viewModel()) {
                             nav.popBackStack(Rutas.INICIO, inclusive = false)
                         }
                     },
-                    cancelar = { nav.popBackStack() },
+                    cancel = { nav.popBackStack() },
                 )
             }
             composable(

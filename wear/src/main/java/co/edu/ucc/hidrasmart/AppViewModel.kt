@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import co.edu.ucc.hidrasmart.alerts.MotorSesion
+import co.edu.ucc.hidrasmart.alerts.SessionEngine
 import co.edu.ucc.hidrasmart.data.WeatherService
 import co.edu.ucc.hidrasmart.data.HeartRateReading
 import co.edu.ucc.hidrasmart.data.HydrationRepository
@@ -48,15 +48,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var mensajeClima by mutableStateOf<String?>(null)
         private set
-    var sesion by mutableStateOf<ActiveSession?>(repo.activeSession())
+    var session by mutableStateOf<ActiveSession?>(repo.activeSession())
         private set
-    var alerta by mutableStateOf<IntakeAlert?>(repo.pendingAlert())
+    var alert by mutableStateOf<IntakeAlert?>(repo.pendingAlert())
         private set
     var fc by mutableStateOf<HeartRateReading?>(null)
         private set
     var altitudSensor by mutableStateOf<Double?>(null)
         private set
-    var ahora by mutableLongStateOf(System.currentTimeMillis())
+    var now by mutableLongStateOf(System.currentTimeMillis())
         private set
 
     private var trabajosSensores: List<Job> = emptyList()
@@ -77,11 +77,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     init {
         repo.listen(listener)
         actualizarClima()
-        if (sesion != null) encenderSensores()
+        if (session != null) encenderSensores()
         // Reloj de la pantalla (cronómetro y cuenta regresiva)
         viewModelScope.launch {
             while (isActive) {
-                ahora = System.currentTimeMillis()
+                now = System.currentTimeMillis()
                 delay(1000)
             }
         }
@@ -98,9 +98,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         intakes = repo.intakes()
         sessions = repo.sessions()
         clima = repo.lastWeather()
-        sesion = repo.activeSession()
-        alerta = repo.pendingAlert()
-        if (sesion == null && trabajosSensores.isNotEmpty()) apagarSensores()
+        session = repo.activeSession()
+        alert = repo.pendingAlert()
+        if (session == null && trabajosSensores.isNotEmpty()) apagarSensores()
     }
 
     // ---------------- Perfil y prueba de sudoración ----------------
@@ -109,7 +109,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         repo.saveProfile(p)
         profile = p
         isProfileConfigured = true
-        MotorSesion.ajustarIntervalo(getApplication<Application>())
+        SessionEngine.adjustInterval(getApplication<Application>())
         recargar()
     }
 
@@ -157,41 +157,41 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- Tomas de agua ----------------
 
-    fun registrarToma(ml: Int) {
-        MotorSesion.registrarToma(getApplication<Application>(), ml)
+    fun logIntake(ml: Int) {
+        SessionEngine.logIntake(getApplication<Application>(), ml)
         recargar()
     }
 
     // ---------------- Entrenamiento ----------------
 
     fun iniciarSesion(type: String) {
-        MotorSesion.iniciar(getApplication<Application>(), type)
+        SessionEngine.start(getApplication<Application>(), type)
         recargar() // al instante, sin esperar el aviso de cambios
         actualizarClima()
         encenderSensores()
     }
 
-    fun pausarOReanudar() {
-        MotorSesion.pausarOReanudar(getApplication<Application>())
+    fun togglePause() {
+        SessionEngine.togglePause(getApplication<Application>())
         recargar()
     }
 
-    fun duracionMs(s: ActiveSession): Long = ((s.pausedSince ?: ahora) - s.startTime - s.pausedMs).coerceAtLeast(0)
+    fun duracionMs(s: ActiveSession): Long = ((s.pausedSince ?: now) - s.startTime - s.pausedMs).coerceAtLeast(0)
 
-    fun yaTome() {
-        MotorSesion.yaTome(getApplication<Application>())
+    fun markDrank() {
+        SessionEngine.markDrank(getApplication<Application>())
         recargar()
     }
 
-    fun posponer() {
-        MotorSesion.posponer(getApplication<Application>())
+    fun snooze() {
+        SessionEngine.snooze(getApplication<Application>())
         recargar()
     }
 
     /** Programa la alarma real en 10 s: da tiempo de salir a la esfera para probarla. */
     fun probarAlarma() {
         guardarLecturasPendientes()
-        MotorSesion.programarPrueba(getApplication<Application>())
+        SessionEngine.scheduleTest(getApplication<Application>())
         recargar()
     }
 
@@ -199,7 +199,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun terminarSesion(): Long? {
         guardarLecturasPendientes()
         apagarSensores()
-        val id = MotorSesion.terminar(getApplication<Application>())
+        val id = SessionEngine.end(getApplication<Application>())
         recargar()
         return id
     }
@@ -213,7 +213,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             viewModelScope.launch {
                 Sensors.heartRate(app).collect { lectura ->
                     fc = lectura
-                    if (sesion?.pausedSince == null) {
+                    if (session?.pausedSince == null) {
                         fcSumaPendiente += lectura.bpm
                         fcLecturasPendientes++
                     }
@@ -241,7 +241,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun guardarLecturasPendientes() {
         val app = getApplication<Application>()
         repo.saveReadings(fc?.bpm, altitudSensor)
-        MotorSesion.sumarFc(app, fcSumaPendiente, fcLecturasPendientes)
+        SessionEngine.addHeartRate(app, fcSumaPendiente, fcLecturasPendientes)
         fcSumaPendiente = 0
         fcLecturasPendientes = 0
     }

@@ -29,7 +29,7 @@ import co.edu.ucc.hidrasmart.ui.theme.Colores
 fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
     val total = vm.totalHoyMl
     val meta = vm.profile.dailyGoalMl
-    val sesion = vm.sesion
+    val session = vm.session
 
     Pantalla {
         item { AnilloProgreso(total, meta) }
@@ -37,17 +37,17 @@ fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
         if (!vm.isProfileConfigured) {
             item { ChipAccion("Configura tu perfil", Colores.Ambar, { ir(Rutas.PROFILE) }, icono = Icons.Default.Person) }
         }
-        if (sesion != null) {
+        if (session != null) {
             item {
                 ChipAccion(
                     "Volver a la sesión", Colores.Azul, { ir(Rutas.SESION) },
-                    detalle = "${sesion.type} · ${duracion(vm.duracionMs(sesion))}",
+                    detalle = "${session.type} · ${duracion(vm.duracionMs(session))}",
                     icono = Icons.Default.PlayArrow,
                 )
             }
         }
         item { ChipAccion("Registrar toma", Colores.Agua, { ir(Rutas.REGISTRAR) }, icono = Icons.Default.Add) }
-        if (sesion == null) {
+        if (session == null) {
             item { ChipAccion("Entrenar", Colores.Azul, { ir(Rutas.TIPO) }, icono = Icons.Default.PlayArrow) }
         }
         item { ChipAccion("Historial", Colores.GrisOscuro, { ir(Rutas.HISTORIAL) }, icono = Icons.Default.DateRange) }

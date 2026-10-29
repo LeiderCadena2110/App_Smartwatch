@@ -17,7 +17,7 @@ import android.Manifest
 import android.os.Build
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
-import co.edu.ucc.hidrasmart.alerts.Diagnostico
+import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
 import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Profile
@@ -84,26 +84,26 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
     }
 
     // Diagnóstico de alertas: se vuelve a revisar cada vez que se regresa a esta pantalla
-    var notificaciones by remember { mutableStateOf(Diagnostico.notificaciones(contexto)) }
-    var exactas by remember { mutableStateOf(Diagnostico.alarmasExactas(contexto)) }
-    var completa by remember { mutableStateOf(Diagnostico.pantallaCompleta(contexto)) }
+    var notificationsEnabled by remember { mutableStateOf(AlertDiagnostics.notificationsEnabled(contexto)) }
+    var exactas by remember { mutableStateOf(AlertDiagnostics.exactAlarmsAllowed(contexto)) }
+    var completa by remember { mutableStateOf(AlertDiagnostics.fullScreenAllowed(contexto)) }
     fun revisar() {
         permiso = Sensors.hasPermissions(contexto)
-        notificaciones = Diagnostico.notificaciones(contexto)
-        exactas = Diagnostico.alarmasExactas(contexto)
-        completa = Diagnostico.pantallaCompleta(contexto)
+        notificationsEnabled = AlertDiagnostics.notificationsEnabled(contexto)
+        exactas = AlertDiagnostics.exactAlarmsAllowed(contexto)
+        completa = AlertDiagnostics.fullScreenAllowed(contexto)
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { revisar() }
     var yaPidioNotificaciones by rememberSaveable { mutableStateOf(false) }
     val pedirNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         revisar()
         // Si el sistema ya no muestra el diálogo, se abren los ajustes de la app
-        if (!notificaciones) Diagnostico.abrirAjustesNotificaciones(contexto)
+        if (!notificationsEnabled) AlertDiagnostics.openNotificationSettings(contexto)
     }
 
     Pantalla {
         item { Titulo("Perfil y ajustes") }
-        if (!(notificaciones && exactas && completa)) {
+        if (!(notificationsEnabled && exactas && completa)) {
             item { Nota("⚠ Las alertas no saldrán con la app cerrada: baja a \"Diagnóstico de alertas\".", Colores.Ambar) }
         }
         item {
@@ -117,8 +117,8 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         }
         item {
             ChipAccion("Ciudad del clima", Colores.GrisOscuro, {
-                val siguiente = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
-                vm.saveProfile(p.copy(city = siguiente))
+                val next = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
+                vm.saveProfile(p.copy(city = next))
                 vm.actualizarClima()
             }, detalle = p.city.substringBefore(","))
         }
@@ -144,31 +144,31 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         item { Titulo("Diagnóstico de alertas", "Para que salgan con la app cerrada") }
         item {
             ChipAccion(
-                "Notificaciones", if (notificaciones) Colores.Verde else Colores.Rojo,
+                "Notificaciones", if (notificationsEnabled) Colores.Verde else Colores.Rojo,
                 {
-                    if (!notificaciones) {
+                    if (!notificationsEnabled) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !yaPidioNotificaciones) {
                             yaPidioNotificaciones = true
                             pedirNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            Diagnostico.abrirAjustesNotificaciones(contexto)
+                            AlertDiagnostics.openNotificationSettings(contexto)
                         }
                     }
                 },
-                detalle = if (notificaciones) "Activadas" else "BLOQUEADAS · toca para activar",
+                detalle = if (notificationsEnabled) "Activadas" else "BLOQUEADAS · toca para activar",
             )
         }
         item {
             ChipAccion(
                 "Alarmas exactas", if (exactas) Colores.Verde else Colores.Rojo,
-                { if (!exactas) Diagnostico.abrirAjustesAlarmas(contexto) },
+                { if (!exactas) AlertDiagnostics.openAlarmSettings(contexto) },
                 detalle = if (exactas) "Permitidas" else "Toca para permitir",
             )
         }
         item {
             ChipAccion(
                 "Pantalla completa", if (completa) Colores.Verde else Colores.Rojo,
-                { if (!completa) Diagnostico.abrirAjustesPantallaCompleta(contexto) },
+                { if (!completa) AlertDiagnostics.openFullScreenSettings(contexto) },
                 detalle = if (completa) "Permitida" else "Toca para permitir",
             )
         }
@@ -207,7 +207,7 @@ fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
     var orina by rememberSaveable { mutableIntStateOf(0) }
     var minutos by rememberSaveable { mutableIntStateOf(60) }
     var mensaje by remember { mutableStateOf<String?>(null) }
-    var guardada by remember { mutableStateOf(false) }
+    var saved by remember { mutableStateOf(false) }
 
     fun paso(v: Double, d: Double) = (((v + d) * 10).roundToInt() / 10.0).coerceIn(30.0, 200.0)
 
@@ -221,16 +221,16 @@ fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
 
         val mensajeActual = mensaje
         if (mensajeActual != null) {
-            item { Nota(mensajeActual, if (guardada) Colores.AguaClara else Colores.Ambar) }
+            item { Nota(mensajeActual, if (saved) Colores.AguaClara else Colores.Ambar) }
         }
         item {
-            if (!guardada) {
+            if (!saved) {
                 ChipAccion("Calcular y guardar", Colores.Verde, {
                     val sweatTest = SweatTest(pesoInicial, pesoFinal, liquido, orina, minutos)
                     vm.guardarPrueba(sweatTest)
                         .onSuccess { rate ->
                             val perdida = HydrationCalculator.weightLossPercent(sweatTest)
-                            guardada = true
+                            saved = true
                             mensaje = "Tasa: ${rate.dec(2)} L/h. Perdiste ${perdida.dec(1)} % del peso" +
                                 if (perdida >= 2.0) " (NATA recomienda menos del 2 %)" else ""
                         }

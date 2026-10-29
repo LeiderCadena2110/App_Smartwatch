@@ -36,7 +36,7 @@ fun PantallaRegistrar(vm: AppViewModel, registrado: (Int) -> Unit, otraCantidad:
         CANTIDADES_RAPIDAS.forEach { ml ->
             item {
                 ChipAccion("+$ml ml", Colores.Agua, {
-                    vm.registrarToma(ml)
+                    vm.logIntake(ml)
                     registrado(ml)
                 })
             }
@@ -53,7 +53,7 @@ fun PantallaOtraCantidad(vm: AppViewModel, registrado: (Int) -> Unit) {
         item { FilaNumero("Mililitros", "$ml", { ml = (ml - 50).coerceAtLeast(50) }, { ml = (ml + 50).coerceAtMost(2000) }) }
         item {
             ChipAccion("Registrar", Colores.Verde, {
-                vm.registrarToma(ml)
+                vm.logIntake(ml)
                 registrado(ml)
             })
         }

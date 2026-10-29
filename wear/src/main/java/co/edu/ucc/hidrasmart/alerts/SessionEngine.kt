@@ -13,37 +13,37 @@ import co.edu.ucc.hidrasmart.domain.Intake
  * Reglas del entrenamiento y de las alertas. Todo se guarda en el reloj, así funciona
  * igual desde la app abierta, desde la alarma o desde los botones de la notificación.
  */
-object MotorSesion {
+object SessionEngine {
 
-    private const val POSPONER_MS = 5 * 60_000L
+    private const val SNOOZE_MS = 5 * 60_000L
 
-    private fun ahora() = System.currentTimeMillis()
-    private fun intervaloMs(repo: HydrationRepository) = repo.profile().intervalMin * 60_000L
+    private fun now() = System.currentTimeMillis()
+    private fun intervalMs(repo: HydrationRepository) = repo.profile().intervalMin * 60_000L
 
-    fun iniciar(contexto: Context, type: String) {
+    fun start(contexto: Context, type: String) {
         val repo = HydrationRepository(contexto)
         if (repo.activeSession() != null) return
-        val t = ahora()
-        val sesion = ActiveSession(type = type, startTime = t, nextAlertAt = t + intervaloMs(repo))
+        val t = now()
+        val session = ActiveSession(type = type, startTime = t, nextAlertAt = t + intervalMs(repo))
         repo.saveAlert(null)
-        repo.saveActiveSession(sesion)
-        Alarmas.programar(contexto, sesion.nextAlertAt)
+        repo.saveActiveSession(session)
+        AlarmScheduler.schedule(contexto, session.nextAlertAt)
     }
 
     /** Llega la hora: calcula los ml, guarda la alerta, avisa y programa la siguiente. */
-    fun dispararAlerta(contexto: Context) {
+    fun fireAlert(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val sesion = repo.activeSession() ?: return
-        if (sesion.pausedSince != null) return
-        val t = ahora()
-        val siguiente = t + intervaloMs(repo)
+        val session = repo.activeSession() ?: return
+        if (session.pausedSince != null) return
+        val t = now()
+        val next = t + intervalMs(repo)
 
-        val pendiente = repo.pendingAlert()
-        if (pendiente != null) {
+        val pending = repo.pendingAlert()
+        if (pending != null) {
             // No respondió la anterior: se recuerda la misma, sin sumar otra recomendación
-            repo.saveActiveSession(sesion.copy(nextAlertAt = siguiente))
-            Alarmas.programar(contexto, siguiente)
-            Alarmas.notificar(contexto, pendiente)
+            repo.saveActiveSession(session.copy(nextAlertAt = next))
+            AlarmScheduler.schedule(contexto, next)
+            AlarmScheduler.showAlert(contexto, pending)
             return
         }
 
@@ -57,102 +57,102 @@ object MotorSesion {
         )
         val factor = HydrationCalculator.factor(condiciones, profile.testConditions, profile.age)
         val ml = profile.sweatRateLh?.let { HydrationCalculator.mlPerAlert(it, factor.value, profile.intervalMin) }
-        val alerta = IntakeAlert(ml, factor, t)
+        val alert = IntakeAlert(ml, factor, t)
 
-        repo.saveAlert(alerta)
-        repo.saveActiveSession(sesion.copy(recommendedMl = sesion.recommendedMl + (ml ?: 0), nextAlertAt = siguiente))
-        Alarmas.programar(contexto, siguiente)
-        Alarmas.notificar(contexto, alerta)
+        repo.saveAlert(alert)
+        repo.saveActiveSession(session.copy(recommendedMl = session.recommendedMl + (ml ?: 0), nextAlertAt = next))
+        AlarmScheduler.schedule(contexto, next)
+        AlarmScheduler.showAlert(contexto, alert)
     }
 
     /** Prueba real: la alarma del sistema suena en 10 s, para comprobarla con la app cerrada. */
-    fun programarPrueba(contexto: Context) {
+    fun scheduleTest(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val sesion = repo.activeSession() ?: return
-        if (sesion.pausedSince != null) return
-        val cuando = ahora() + 10_000L
-        repo.saveActiveSession(sesion.copy(nextAlertAt = cuando))
-        Alarmas.programar(contexto, cuando)
+        val session = repo.activeSession() ?: return
+        if (session.pausedSince != null) return
+        val triggerAt = now() + 10_000L
+        repo.saveActiveSession(session.copy(nextAlertAt = triggerAt))
+        AlarmScheduler.schedule(contexto, triggerAt)
     }
 
     /** "Ya tomé": registra los ml y la próxima alerta queda a un intervalo de ahora. */
-    fun yaTome(contexto: Context) {
+    fun markDrank(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val alerta = repo.pendingAlert() ?: return
-        alerta.ml?.let { registrarToma(contexto, it) }
+        val alert = repo.pendingAlert() ?: return
+        alert.ml?.let { logIntake(contexto, it) }
         repo.saveAlert(null)
-        Alarmas.quitarNotificacion(contexto)
-        val sesion = repo.activeSession() ?: return
-        val siguiente = ahora() + intervaloMs(repo)
-        repo.saveActiveSession(sesion.copy(nextAlertAt = siguiente))
-        Alarmas.programar(contexto, siguiente)
+        AlarmScheduler.dismissNotification(contexto)
+        val session = repo.activeSession() ?: return
+        val next = now() + intervalMs(repo)
+        repo.saveActiveSession(session.copy(nextAlertAt = next))
+        AlarmScheduler.schedule(contexto, next)
     }
 
     /** "En 5 min": esa recomendación no cuenta todavía. */
-    fun posponer(contexto: Context) {
+    fun snooze(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val alerta = repo.pendingAlert() ?: return
+        val alert = repo.pendingAlert() ?: return
         repo.saveAlert(null)
-        Alarmas.quitarNotificacion(contexto)
-        val sesion = repo.activeSession() ?: return
-        val siguiente = ahora() + POSPONER_MS
+        AlarmScheduler.dismissNotification(contexto)
+        val session = repo.activeSession() ?: return
+        val next = now() + SNOOZE_MS
         repo.saveActiveSession(
-            sesion.copy(nextAlertAt = siguiente, recommendedMl = (sesion.recommendedMl - (alerta.ml ?: 0)).coerceAtLeast(0)),
+            session.copy(nextAlertAt = next, recommendedMl = (session.recommendedMl - (alert.ml ?: 0)).coerceAtLeast(0)),
         )
-        Alarmas.programar(contexto, siguiente)
+        AlarmScheduler.schedule(contexto, next)
     }
 
-    fun registrarToma(contexto: Context, ml: Int) {
+    fun logIntake(contexto: Context, ml: Int) {
         val repo = HydrationRepository(contexto)
-        repo.addIntake(Intake(ahora(), ml))
+        repo.addIntake(Intake(now(), ml))
         repo.activeSession()?.let { repo.saveActiveSession(it.copy(drankMl = it.drankMl + ml)) }
     }
 
-    fun pausarOReanudar(contexto: Context) {
+    fun togglePause(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val sesion = repo.activeSession() ?: return
-        val t = ahora()
-        val pausedSince = sesion.pausedSince
+        val session = repo.activeSession() ?: return
+        val t = now()
+        val pausedSince = session.pausedSince
         if (pausedSince == null) {
-            repo.saveActiveSession(sesion.copy(pausedSince = t))
-            Alarmas.cancelar(contexto)
+            repo.saveActiveSession(session.copy(pausedSince = t))
+            AlarmScheduler.cancel(contexto)
         } else {
-            val pausa = t - pausedSince
-            val reanudada = sesion.copy(pausedSince = null, pausedMs = sesion.pausedMs + pausa, nextAlertAt = sesion.nextAlertAt + pausa)
-            repo.saveActiveSession(reanudada)
-            Alarmas.programar(contexto, reanudada.nextAlertAt)
+            val pauseMs = t - pausedSince
+            val resumed = session.copy(pausedSince = null, pausedMs = session.pausedMs + pauseMs, nextAlertAt = session.nextAlertAt + pauseMs)
+            repo.saveActiveSession(resumed)
+            AlarmScheduler.schedule(contexto, resumed.nextAlertAt)
         }
     }
 
     /** Suma un bloque de lecturas de frecuencia cardíaca al promedio de la sesión. */
-    fun sumarFc(contexto: Context, suma: Long, lecturas: Int) {
-        if (lecturas <= 0) return
+    fun addHeartRate(contexto: Context, sum: Long, readings: Int) {
+        if (readings <= 0) return
         val repo = HydrationRepository(contexto)
-        val sesion = repo.activeSession() ?: return
-        repo.saveActiveSession(sesion.copy(heartRateSum = sesion.heartRateSum + suma, heartRateReadings = sesion.heartRateReadings + lecturas))
+        val session = repo.activeSession() ?: return
+        repo.saveActiveSession(session.copy(heartRateSum = session.heartRateSum + sum, heartRateReadings = session.heartRateReadings + readings))
     }
 
     /** Si cambia el intervalo durante la sesión, la próxima alerta se ajusta de una vez. */
-    fun ajustarIntervalo(contexto: Context) {
+    fun adjustInterval(contexto: Context) {
         val repo = HydrationRepository(contexto)
-        val sesion = repo.activeSession() ?: return
-        if (sesion.pausedSince != null) return
-        val conNuevo = ahora() + intervaloMs(repo)
-        if (conNuevo < sesion.nextAlertAt) {
-            repo.saveActiveSession(sesion.copy(nextAlertAt = conNuevo))
-            Alarmas.programar(contexto, conNuevo)
+        val session = repo.activeSession() ?: return
+        if (session.pausedSince != null) return
+        val withNew = now() + intervalMs(repo)
+        if (withNew < session.nextAlertAt) {
+            repo.saveActiveSession(session.copy(nextAlertAt = withNew))
+            AlarmScheduler.schedule(contexto, withNew)
         }
     }
 
     /** Termina, guarda en el historial y devuelve el id. */
-    fun terminar(contexto: Context): Long? {
+    fun end(contexto: Context): Long? {
         val repo = HydrationRepository(contexto)
         val s = repo.activeSession() ?: return null
-        val t = ahora()
-        Alarmas.cancelar(contexto)
-        Alarmas.quitarNotificacion(contexto)
+        val t = now()
+        AlarmScheduler.cancel(contexto)
+        AlarmScheduler.dismissNotification(contexto)
         repo.saveAlert(null)
-        val guardada = SavedSession(
+        val saved = SavedSession(
             id = t,
             type = s.type,
             startTime = s.startTime,
@@ -162,8 +162,8 @@ object MotorSesion {
             drankMl = s.drankMl,
             recommendedMl = s.recommendedMl.coerceAtLeast(0),
         )
-        repo.saveSession(guardada)
+        repo.saveSession(saved)
         repo.saveActiveSession(null)
-        return guardada.id
+        return saved.id
     }
 }
