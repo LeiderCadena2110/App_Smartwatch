@@ -7,3 +7,8 @@ build/
 captures/
 .externalNativeBuild/
 .cxx/
+# Release artifacts and signing keys (never commit them)
+dist/
+*.jks
+*.keystore
+keystore.txt
