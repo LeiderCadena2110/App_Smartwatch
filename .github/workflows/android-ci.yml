@@ -1,0 +1,54 @@
+# Compila y prueba en cada push y pull request. Los APK quedan como artefactos del run.
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: |
+          echo "OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}" > local.properties
+
+      - name: Unit tests (calculator and AI)
+        run: ./gradlew --no-daemon :core:testDebugUnitTest
+
+      - name: Build watch and phone APKs
+        run: ./gradlew --no-daemon :wear:assembleDebug :mobile:assembleDebug
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: core/build/reports/tests/
+          if-no-files-found: ignore
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: hidrasmart-debug-apks
+          path: |
+            wear/build/outputs/apk/debug/*.apk
+            mobile/build/outputs/apk/debug/*.apk
