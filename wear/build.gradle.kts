@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// La clave de OpenWeatherMap se lee de local.properties (ese archivo NO se sube a GitHub)
+// Las claves de OpenWeatherMap y Gemini se leen de local.properties (ese archivo NO se sube a GitHub)
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -28,6 +28,9 @@ android {
             "OPENWEATHER_API_KEY",
             "\"${localProperties.getProperty("OPENWEATHER_API_KEY", "")}\""
         )
+        // Coach de IA (Gemini). Sin clave, la app usa el coach local sin internet.
+        buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"${localProperties.getProperty("GEMINI_MODEL", "")}\"")
     }
 
     buildFeatures {

@@ -8,25 +8,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.ucc.hidrasmart.ai.AiCoach
+import co.edu.ucc.hidrasmart.ai.CoachAnswer
+import co.edu.ucc.hidrasmart.ai.CoachInput
+import co.edu.ucc.hidrasmart.ai.GeminiClient
+import co.edu.ucc.hidrasmart.ai.HydrationInsights
+import co.edu.ucc.hidrasmart.ai.HydrationPredictor
+import co.edu.ucc.hidrasmart.ai.Insight
+import co.edu.ucc.hidrasmart.ai.WaterPlan
 import co.edu.ucc.hidrasmart.alerts.SessionEngine
-import co.edu.ucc.hidrasmart.data.WeatherService
 import co.edu.ucc.hidrasmart.data.HeartRateReading
 import co.edu.ucc.hidrasmart.data.HydrationRepository
 import co.edu.ucc.hidrasmart.data.Sensors
-import co.edu.ucc.hidrasmart.domain.IntakeAlert
-import co.edu.ucc.hidrasmart.domain.HydrationCalculator
-import co.edu.ucc.hidrasmart.domain.Weather
+import co.edu.ucc.hidrasmart.data.WeatherService
+import co.edu.ucc.hidrasmart.domain.ActiveSession
 import co.edu.ucc.hidrasmart.domain.Conditions
 import co.edu.ucc.hidrasmart.domain.Factor
+import co.edu.ucc.hidrasmart.domain.HydrationCalculator
+import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
-import co.edu.ucc.hidrasmart.domain.ActiveSession
+import co.edu.ucc.hidrasmart.domain.Weather
 import co.edu.ucc.hidrasmart.format.toLocalDate
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 /**
  * Estado de la pantalla. Los datos viven en el reloj (HydrationRepository) y las reglas del
@@ -58,6 +68,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var now by mutableLongStateOf(System.currentTimeMillis())
         private set
+
+    // ---------------- Coach de IA ----------------
+    private val coach = AiCoach(GeminiClient(BuildConfig.GEMINI_API_KEY, BuildConfig.GEMINI_MODEL))
+    private var coachJob: Job? = null
+
+    var coachAnswer by mutableStateOf<CoachAnswer?>(null)
+        private set
+    var coachLoading by mutableStateOf(false)
+        private set
+
+    /** true si hay clave de Gemini; si no, responde la IA local. */
+    val cloudAiEnabled: Boolean get() = coach.cloudEnabled
 
     private var sensorJobs: List<Job> = emptyList()
     private var pendingHeartRateSum = 0L
@@ -153,6 +175,44 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun mlPerAlert(): Int? = profile.sweatRateLh?.let {
         HydrationCalculator.mlPerAlert(it, currentFactor().value, profile.intervalMin)
+    }
+
+    // ---------------- Inteligencia artificial ----------------
+
+    fun coachInput(): CoachInput = CoachInput(
+        profile = profile,
+        intakes = intakes,
+        sessions = sessions,
+        now = LocalDateTime.now(),
+        zone = ZoneId.systemDefault(),
+        conditionsFactor = currentFactor().value,
+        inWorkout = session != null,
+    )
+
+    /** Hallazgos del sistema experto (sin internet), del más importante al menos importante. */
+    fun insights(): List<Insight> = HydrationInsights.analyze(coachInput())
+
+    /** Predicción del modelo entrenado en el reloj: cuánta agua llevar a un entrenamiento. */
+    fun waterPlan(type: String?, minutes: Int): WaterPlan = HydrationPredictor.plan(type, minutes, profile, sessions)
+
+    /** Pregunta al coach (Gemini si hay clave; si no, IA local). [question] null = consejo para este momento. */
+    fun askCoach(question: String?) {
+        coachJob?.cancel()
+        coachLoading = true
+        coachJob = viewModelScope.launch {
+            try {
+                coachAnswer = coach.ask(question, coachInput(), compact = true)
+            } finally {
+                // Si esta pregunta se canceló por otra nueva, la nueva maneja el indicador
+                if (isActive) coachLoading = false
+            }
+        }
+    }
+
+    fun clearCoachAnswer() {
+        coachJob?.cancel()
+        coachAnswer = null
+        coachLoading = false
     }
 
     // ---------------- Tomas de agua ----------------
