@@ -11,11 +11,11 @@ import co.edu.ucc.hidrasmart.ui.ActionChip
 import co.edu.ucc.hidrasmart.ui.Note
 import co.edu.ucc.hidrasmart.ui.WearScreen
 import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.ui.toLocalDate
-import co.edu.ucc.hidrasmart.ui.formatDuration
-import co.edu.ucc.hidrasmart.ui.toTimeText
-import co.edu.ucc.hidrasmart.ui.withThousands
-import co.edu.ucc.hidrasmart.ui.displayName
+import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.format.formatDuration
+import co.edu.ucc.hidrasmart.format.toTimeText
+import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.format.displayName
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import java.time.LocalDate
 

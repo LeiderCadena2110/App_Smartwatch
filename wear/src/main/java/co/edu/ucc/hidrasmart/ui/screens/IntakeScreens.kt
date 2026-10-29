@@ -23,7 +23,7 @@ import co.edu.ucc.hidrasmart.ui.ActionChip
 import co.edu.ucc.hidrasmart.ui.NumberStepper
 import co.edu.ucc.hidrasmart.ui.WearScreen
 import co.edu.ucc.hidrasmart.ui.ScreenTitle
-import co.edu.ucc.hidrasmart.ui.withThousands
+import co.edu.ucc.hidrasmart.format.withThousands
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlinx.coroutines.delay
 

@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.ui
+package co.edu.ucc.hidrasmart.format
 
 import java.text.NumberFormat
 import java.time.Instant

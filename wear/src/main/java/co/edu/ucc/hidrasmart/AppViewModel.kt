@@ -21,7 +21,7 @@ import co.edu.ucc.hidrasmart.domain.Factor
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.domain.ActiveSession
-import co.edu.ucc.hidrasmart.ui.toLocalDate
+import co.edu.ucc.hidrasmart.format.toLocalDate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
