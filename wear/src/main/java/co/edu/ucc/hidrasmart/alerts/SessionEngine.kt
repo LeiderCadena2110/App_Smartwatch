@@ -49,13 +49,13 @@ object SessionEngine {
 
         val profile = repo.profile()
         val clima = repo.lastWeather()
-        val condiciones = Conditions(
+        val conditions = Conditions(
             altitudeM = repo.lastAltitude() ?: profile.usualAltitudeM,
             temperatureC = clima?.temperatureC ?: profile.manualTemperatureC,
             humidityPct = clima?.humidityPct ?: profile.manualHumidityPct,
             heartRateBpm = repo.lastHeartRate(),
         )
-        val factor = HydrationCalculator.factor(condiciones, profile.testConditions, profile.age)
+        val factor = HydrationCalculator.factor(conditions, profile.testConditions, profile.age)
         val ml = profile.sweatRateLh?.let { HydrationCalculator.mlPerAlert(it, factor.value, profile.intervalMin) }
         val alert = IntakeAlert(ml, factor, t)
 

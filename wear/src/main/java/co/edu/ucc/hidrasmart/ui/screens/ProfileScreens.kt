@@ -33,91 +33,91 @@ import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlin.math.roundToInt
 
 /** Campos numéricos del perfil que se editan con − y +. */
-enum class CampoPerfil(
-    val titulo: String,
-    val unidad: String,
-    val paso: Double,
-    val minimo: Double,
-    val maximo: Double,
+enum class ProfileField(
+    val title: String,
+    val unitLabel: String,
+    val step: Double,
+    val minValue: Double,
+    val maxValue: Double,
     val digits: Int,
 ) {
-    PESO("Peso", "kg", 0.5, 30.0, 200.0, 1),
-    EDAD("Edad", "años", 1.0, 10.0, 90.0, 0),
-    META("Meta diaria", "ml", 100.0, 500.0, 6000.0, 0),
-    INTERVALO("Intervalo de alertas", "min", 5.0, 1.0, 60.0, 0), // 1 min solo para pruebas
-    ALTITUD("Altitud habitual", "m", 50.0, 0.0, 5000.0, 0),
-    TEMPERATURA("Temperatura manual", "°C", 1.0, -10.0, 45.0, 0),
-    HUMEDAD("Humedad manual", "%", 5.0, 0.0, 100.0, 0);
+    WEIGHT("Peso", "kg", 0.5, 30.0, 200.0, 1),
+    AGE("Edad", "años", 1.0, 10.0, 90.0, 0),
+    GOAL("Meta diaria", "ml", 100.0, 500.0, 6000.0, 0),
+    INTERVAL("Intervalo de alertas", "min", 5.0, 1.0, 60.0, 0), // 1 min solo para pruebas
+    ALTITUDE("Altitud habitual", "m", 50.0, 0.0, 5000.0, 0),
+    TEMPERATURE("Temperatura manual", "°C", 1.0, -10.0, 45.0, 0),
+    HUMIDITY("Humedad manual", "%", 5.0, 0.0, 100.0, 0);
 
-    fun leer(p: Profile): Double = when (this) {
-        PESO -> p.weightKg
-        EDAD -> p.age.toDouble()
-        META -> p.dailyGoalMl.toDouble()
-        INTERVALO -> p.intervalMin.toDouble()
-        ALTITUD -> p.usualAltitudeM
-        TEMPERATURA -> p.manualTemperatureC
-        HUMEDAD -> p.manualHumidityPct
+    fun read(p: Profile): Double = when (this) {
+        WEIGHT -> p.weightKg
+        AGE -> p.age.toDouble()
+        GOAL -> p.dailyGoalMl.toDouble()
+        INTERVAL -> p.intervalMin.toDouble()
+        ALTITUDE -> p.usualAltitudeM
+        TEMPERATURE -> p.manualTemperatureC
+        HUMIDITY -> p.manualHumidityPct
     }
 
-    fun escribir(p: Profile, v: Double): Profile = when (this) {
-        PESO -> p.copy(weightKg = v)
-        EDAD -> p.copy(age = v.roundToInt())
-        META -> p.copy(dailyGoalMl = v.roundToInt())
-        INTERVALO -> p.copy(intervalMin = v.roundToInt())
-        ALTITUD -> p.copy(usualAltitudeM = v)
-        TEMPERATURA -> p.copy(manualTemperatureC = v)
-        HUMEDAD -> p.copy(manualHumidityPct = v)
+    fun write(p: Profile, v: Double): Profile = when (this) {
+        WEIGHT -> p.copy(weightKg = v)
+        AGE -> p.copy(age = v.roundToInt())
+        GOAL -> p.copy(dailyGoalMl = v.roundToInt())
+        INTERVAL -> p.copy(intervalMin = v.roundToInt())
+        ALTITUDE -> p.copy(usualAltitudeM = v)
+        TEMPERATURE -> p.copy(manualTemperatureC = v)
+        HUMIDITY -> p.copy(manualHumidityPct = v)
     }
 
-    fun text(p: Profile): String = "${leer(p).toFixed(digits)} $unidad"
+    fun text(p: Profile): String = "${read(p).toFixed(digits)} $unitLabel"
 }
 
-private val CIUDADES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", "Medellin,CO", "Cali,CO")
+private val CITIES = listOf("Pasto,CO", "Ipiales,CO", "Tumaco,CO", "Bogota,CO", "Medellin,CO", "Cali,CO")
 
 @Composable
-fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba: () -> Unit) {
+fun ProfileScreen(vm: AppViewModel, editField: (ProfileField) -> Unit, onOpenSweatTest: () -> Unit) {
     val p = vm.profile
     val contexto = LocalContext.current
-    var permiso by remember { mutableStateOf(Sensors.hasPermissions(contexto)) }
-    val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        permiso = Sensors.hasPermissions(contexto)
+    var permissionGranted by remember { mutableStateOf(Sensors.hasPermissions(contexto)) }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        permissionGranted = Sensors.hasPermissions(contexto)
     }
 
     // Diagnóstico de alertas: se vuelve a revisar cada vez que se regresa a esta pantalla
     var notificationsEnabled by remember { mutableStateOf(AlertDiagnostics.notificationsEnabled(contexto)) }
-    var exactas by remember { mutableStateOf(AlertDiagnostics.exactAlarmsAllowed(contexto)) }
-    var completa by remember { mutableStateOf(AlertDiagnostics.fullScreenAllowed(contexto)) }
-    fun revisar() {
-        permiso = Sensors.hasPermissions(contexto)
+    var exactAllowed by remember { mutableStateOf(AlertDiagnostics.exactAlarmsAllowed(contexto)) }
+    var fullScreenOk by remember { mutableStateOf(AlertDiagnostics.fullScreenAllowed(contexto)) }
+    fun recheck() {
+        permissionGranted = Sensors.hasPermissions(contexto)
         notificationsEnabled = AlertDiagnostics.notificationsEnabled(contexto)
-        exactas = AlertDiagnostics.exactAlarmsAllowed(contexto)
-        completa = AlertDiagnostics.fullScreenAllowed(contexto)
+        exactAllowed = AlertDiagnostics.exactAlarmsAllowed(contexto)
+        fullScreenOk = AlertDiagnostics.fullScreenAllowed(contexto)
     }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { revisar() }
-    var yaPidioNotificaciones by rememberSaveable { mutableStateOf(false) }
-    val pedirNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        revisar()
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { recheck() }
+    var askedNotifications by rememberSaveable { mutableStateOf(false) }
+    val notificationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        recheck()
         // Si el sistema ya no muestra el diálogo, se abren los ajustes de la app
         if (!notificationsEnabled) AlertDiagnostics.openNotificationSettings(contexto)
     }
 
     WearScreen {
         item { ScreenTitle("Perfil y ajustes") }
-        if (!(notificationsEnabled && exactas && completa)) {
+        if (!(notificationsEnabled && exactAllowed && fullScreenOk)) {
             item { Note("⚠ Las alertas no saldrán con la app cerrada: baja a \"Diagnóstico de alertas\".", AppColors.Amber) }
         }
         item {
             ActionChip(
-                "Prueba de sudoración", AppColors.Water, abrirPrueba,
+                "Prueba de sudoración", AppColors.Water, onOpenSweatTest,
                 detail = p.sweatRateLh?.let { "${it.toFixed(2)} L/h" } ?: "Sin hacer",
             )
         }
-        listOf(CampoPerfil.PESO, CampoPerfil.EDAD, CampoPerfil.META, CampoPerfil.INTERVALO).forEach { campo ->
-            item { ActionChip(campo.titulo, AppColors.DarkGray, { editar(campo) }, detail = campo.text(p)) }
+        listOf(ProfileField.WEIGHT, ProfileField.AGE, ProfileField.GOAL, ProfileField.INTERVAL).forEach { field ->
+            item { ActionChip(field.title, AppColors.DarkGray, { editField(field) }, detail = field.text(p)) }
         }
         item {
             ActionChip("Ciudad del clima", AppColors.DarkGray, {
-                val next = CIUDADES[(CIUDADES.indexOf(p.city) + 1) % CIUDADES.size]
+                val next = CITIES[(CITIES.indexOf(p.city) + 1) % CITIES.size]
                 vm.saveProfile(p.copy(city = next))
                 vm.actualizarClima()
             }, detail = p.city.substringBefore(","))
@@ -129,14 +129,14 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
                 else vm.mensajeClima ?: "Clima sin consultar",
             )
         }
-        listOf(CampoPerfil.ALTITUD, CampoPerfil.TEMPERATURA, CampoPerfil.HUMEDAD).forEach { campo ->
-            item { ActionChip(campo.titulo, AppColors.DarkGray, { editar(campo) }, detail = campo.text(p)) }
+        listOf(ProfileField.ALTITUDE, ProfileField.TEMPERATURE, ProfileField.HUMIDITY).forEach { field ->
+            item { ActionChip(field.title, AppColors.DarkGray, { editField(field) }, detail = field.text(p)) }
         }
         item {
             ActionChip(
-                "Permisos (sensores y alertas)", if (permiso) AppColors.Green else AppColors.Amber,
-                { if (!permiso) pedirPermiso.launch(Sensors.workoutPermissions()) },
-                detail = if (permiso) "Concedido" else "Toca para permitir",
+                "Permisos (sensores y alertas)", if (permissionGranted) AppColors.Green else AppColors.Amber,
+                { if (!permissionGranted) permissionLauncher.launch(Sensors.workoutPermissions()) },
+                detail = if (permissionGranted) "Concedido" else "Toca para permitir",
             )
         }
         item { Note("Altitud, temperatura y humedad manuales se usan cuando no hay barómetro o internet.") }
@@ -147,9 +147,9 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
                 "Notificaciones", if (notificationsEnabled) AppColors.Green else AppColors.Red,
                 {
                     if (!notificationsEnabled) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !yaPidioNotificaciones) {
-                            yaPidioNotificaciones = true
-                            pedirNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !askedNotifications) {
+                            askedNotifications = true
+                            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
                             AlertDiagnostics.openNotificationSettings(contexto)
                         }
@@ -160,16 +160,16 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
         }
         item {
             ActionChip(
-                "Alarmas exactas", if (exactas) AppColors.Green else AppColors.Red,
-                { if (!exactas) AlertDiagnostics.openAlarmSettings(contexto) },
-                detail = if (exactas) "Permitidas" else "Toca para permitir",
+                "Alarmas exactas", if (exactAllowed) AppColors.Green else AppColors.Red,
+                { if (!exactAllowed) AlertDiagnostics.openAlarmSettings(contexto) },
+                detail = if (exactAllowed) "Permitidas" else "Toca para permitir",
             )
         }
         item {
             ActionChip(
-                "Pantalla completa", if (completa) AppColors.Green else AppColors.Red,
-                { if (!completa) AlertDiagnostics.openFullScreenSettings(contexto) },
-                detail = if (completa) "Permitida" else "Toca para permitir",
+                "Pantalla completa", if (fullScreenOk) AppColors.Green else AppColors.Red,
+                { if (!fullScreenOk) AlertDiagnostics.openFullScreenSettings(contexto) },
+                detail = if (fullScreenOk) "Permitida" else "Toca para permitir",
             )
         }
         item { Note("Versión ${BuildConfig.VERSION_NAME}") }
@@ -177,19 +177,19 @@ fun PantallaPerfil(vm: AppViewModel, editar: (CampoPerfil) -> Unit, abrirPrueba:
 }
 
 @Composable
-fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit) {
-    var value by rememberSaveable { mutableDoubleStateOf(campo.leer(vm.profile)) }
-    fun ajustar(delta: Double) {
-        val nuevo = ((value + delta) * 10).roundToInt() / 10.0
-        value = nuevo.coerceIn(campo.minimo, campo.maximo)
+fun EditFieldScreen(vm: AppViewModel, field: ProfileField, onDone: () -> Unit) {
+    var value by rememberSaveable { mutableDoubleStateOf(field.read(vm.profile)) }
+    fun adjust(delta: Double) {
+        val newValue = ((value + delta) * 10).roundToInt() / 10.0
+        value = newValue.coerceIn(field.minValue, field.maxValue)
     }
     WearScreen {
-        item { ScreenTitle(campo.titulo) }
-        item { NumberStepper(campo.unidad, value.toFixed(campo.digits), { ajustar(-campo.paso) }, { ajustar(campo.paso) }) }
+        item { ScreenTitle(field.title) }
+        item { NumberStepper(field.unitLabel, value.toFixed(field.digits), { adjust(-field.step) }, { adjust(field.step) }) }
         item {
             ActionChip("Guardar", AppColors.Green, {
-                vm.saveProfile(campo.escribir(vm.profile, value))
-                listo()
+                vm.saveProfile(field.write(vm.profile, value))
+                onDone()
             })
         }
     }
@@ -200,44 +200,44 @@ fun PantallaEditarCampo(vm: AppViewModel, campo: CampoPerfil, listo: () -> Unit)
  * anotar lo que se tomó y la orina. El reloj no pesa: los datos se ingresan aquí.
  */
 @Composable
-fun PantallaPrueba(vm: AppViewModel, listo: () -> Unit) {
-    var pesoInicial by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg) }
-    var pesoFinal by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg - 0.5) }
-    var liquido by rememberSaveable { mutableIntStateOf(0) }
-    var orina by rememberSaveable { mutableIntStateOf(0) }
-    var minutos by rememberSaveable { mutableIntStateOf(60) }
-    var mensaje by remember { mutableStateOf<String?>(null) }
+fun SweatTestScreen(vm: AppViewModel, onDone: () -> Unit) {
+    var initialWeight by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg) }
+    var finalWeight by rememberSaveable { mutableDoubleStateOf(vm.profile.weightKg - 0.5) }
+    var fluid by rememberSaveable { mutableIntStateOf(0) }
+    var urine by rememberSaveable { mutableIntStateOf(0) }
+    var minutes by rememberSaveable { mutableIntStateOf(60) }
+    var message by remember { mutableStateOf<String?>(null) }
     var saved by remember { mutableStateOf(false) }
 
-    fun paso(v: Double, d: Double) = (((v + d) * 10).roundToInt() / 10.0).coerceIn(30.0, 200.0)
+    fun step(v: Double, d: Double) = (((v + d) * 10).roundToInt() / 10.0).coerceIn(30.0, 200.0)
 
     WearScreen {
         item { ScreenTitle("Prueba de sudoración", "Pésate antes y después de entrenar") }
-        item { NumberStepper("Peso inicial (kg)", pesoInicial.toFixed(1), { pesoInicial = paso(pesoInicial, -0.1) }, { pesoInicial = paso(pesoInicial, 0.1) }) }
-        item { NumberStepper("Peso final (kg)", pesoFinal.toFixed(1), { pesoFinal = paso(pesoFinal, -0.1) }, { pesoFinal = paso(pesoFinal, 0.1) }) }
-        item { NumberStepper("Líquido tomado (ml)", liquido.withThousands(), { liquido = (liquido - 50).coerceAtLeast(0) }, { liquido += 50 }) }
-        item { NumberStepper("Orina (ml)", orina.withThousands(), { orina = (orina - 50).coerceAtLeast(0) }, { orina += 50 }) }
-        item { NumberStepper("Duración (min)", "$minutos", { minutos = (minutos - 5).coerceAtLeast(5) }, { minutos = (minutos + 5).coerceAtMost(240) }) }
+        item { NumberStepper("Peso inicial (kg)", initialWeight.toFixed(1), { initialWeight = step(initialWeight, -0.1) }, { initialWeight = step(initialWeight, 0.1) }) }
+        item { NumberStepper("Peso final (kg)", finalWeight.toFixed(1), { finalWeight = step(finalWeight, -0.1) }, { finalWeight = step(finalWeight, 0.1) }) }
+        item { NumberStepper("Líquido tomado (ml)", fluid.withThousands(), { fluid = (fluid - 50).coerceAtLeast(0) }, { fluid += 50 }) }
+        item { NumberStepper("Orina (ml)", urine.withThousands(), { urine = (urine - 50).coerceAtLeast(0) }, { urine += 50 }) }
+        item { NumberStepper("Duración (min)", "$minutes", { minutes = (minutes - 5).coerceAtLeast(5) }, { minutes = (minutes + 5).coerceAtMost(240) }) }
 
-        val mensajeActual = mensaje
-        if (mensajeActual != null) {
-            item { Note(mensajeActual, if (saved) AppColors.LightWater else AppColors.Amber) }
+        val currentMessage = message
+        if (currentMessage != null) {
+            item { Note(currentMessage, if (saved) AppColors.LightWater else AppColors.Amber) }
         }
         item {
             if (!saved) {
                 ActionChip("Calcular y guardar", AppColors.Green, {
-                    val sweatTest = SweatTest(pesoInicial, pesoFinal, liquido, orina, minutos)
+                    val sweatTest = SweatTest(initialWeight, finalWeight, fluid, urine, minutes)
                     vm.guardarPrueba(sweatTest)
                         .onSuccess { rate ->
-                            val perdida = HydrationCalculator.weightLossPercent(sweatTest)
+                            val loss = HydrationCalculator.weightLossPercent(sweatTest)
                             saved = true
-                            mensaje = "Tasa: ${rate.toFixed(2)} L/h. Perdiste ${perdida.toFixed(1)} % del peso" +
-                                if (perdida >= 2.0) " (NATA recomienda menos del 2 %)" else ""
+                            message = "Tasa: ${rate.toFixed(2)} L/h. Perdiste ${loss.toFixed(1)} % del peso" +
+                                if (loss >= 2.0) " (NATA recomienda menos del 2 %)" else ""
                         }
-                        .onFailure { mensaje = it.message ?: "Revisa los datos" }
+                        .onFailure { message = it.message ?: "Revisa los datos" }
                 })
             } else {
-                ActionChip("Listo", AppColors.Green, listo)
+                ActionChip("Listo", AppColors.Green, onDone)
             }
         }
     }

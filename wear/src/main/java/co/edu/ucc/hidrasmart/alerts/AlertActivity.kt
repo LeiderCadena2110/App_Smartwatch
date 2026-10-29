@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import co.edu.ucc.hidrasmart.data.HydrationRepository
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
-import co.edu.ucc.hidrasmart.ui.screens.ContenidoAlerta
+import co.edu.ucc.hidrasmart.ui.screens.AlertContent
 import co.edu.ucc.hidrasmart.ui.theme.HidraSmartTheme
 
 /**
@@ -43,13 +43,13 @@ class AlertActivity : ComponentActivity() {
             HidraSmartTheme {
                 val current = alert
                 if (current != null) {
-                    ContenidoAlerta(
+                    AlertContent(
                         alert = current,
-                        onYaTome = {
+                        onDrank = {
                             SessionEngine.markDrank(this)
                             finish()
                         },
-                        onPosponer = {
+                        onSnooze = {
                             SessionEngine.snooze(this)
                             finish()
                         },

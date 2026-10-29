@@ -27,26 +27,26 @@ import co.edu.ucc.hidrasmart.ui.withThousands
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
-private val CANTIDADES_RAPIDAS = listOf(150, 250, 500)
+private val QUICK_AMOUNTS = listOf(150, 250, 500)
 
 @Composable
-fun PantallaRegistrar(vm: AppViewModel, registrado: (Int) -> Unit, otraCantidad: () -> Unit) {
+fun LogIntakeScreen(vm: AppViewModel, onLogged: (Int) -> Unit, onCustomAmount: () -> Unit) {
     WearScreen {
         item { ScreenTitle("Registrar toma", "Hoy: ${vm.totalHoyMl.withThousands()} ml") }
-        CANTIDADES_RAPIDAS.forEach { ml ->
+        QUICK_AMOUNTS.forEach { ml ->
             item {
                 ActionChip("+$ml ml", AppColors.Water, {
                     vm.logIntake(ml)
-                    registrado(ml)
+                    onLogged(ml)
                 })
             }
         }
-        item { ActionChip("Otra cantidad", AppColors.Gray, otraCantidad) }
+        item { ActionChip("Otra cantidad", AppColors.Gray, onCustomAmount) }
     }
 }
 
 @Composable
-fun PantallaOtraCantidad(vm: AppViewModel, registrado: (Int) -> Unit) {
+fun CustomAmountScreen(vm: AppViewModel, onLogged: (Int) -> Unit) {
     var ml by rememberSaveable { mutableIntStateOf(300) }
     WearScreen {
         item { ScreenTitle("Otra cantidad") }
@@ -54,7 +54,7 @@ fun PantallaOtraCantidad(vm: AppViewModel, registrado: (Int) -> Unit) {
         item {
             ActionChip("Registrar", AppColors.Green, {
                 vm.logIntake(ml)
-                registrado(ml)
+                onLogged(ml)
             })
         }
     }
@@ -62,10 +62,10 @@ fun PantallaOtraCantidad(vm: AppViewModel, registrado: (Int) -> Unit) {
 
 /** Confirmación breve que vuelve sola a la pantalla anterior. */
 @Composable
-fun PantallaConfirmacion(ml: Int, listo: () -> Unit) {
+fun ConfirmationScreen(ml: Int, onDone: () -> Unit) {
     LaunchedEffect(Unit) {
         delay(1500)
-        listo()
+        onDone()
     }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

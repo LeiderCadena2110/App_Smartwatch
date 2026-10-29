@@ -116,8 +116,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Calcula la tasa con la fórmula NATA y la guarda junto con las condiciones de hoy. */
     fun guardarPrueba(sweatTest: SweatTest): Result<Double> = runCatching {
         val rate = HydrationCalculator.sweatRate(sweatTest)
-        val condiciones = condicionesActuales().copy(heartRateBpm = null)
-        saveProfile(profile.copy(sweatRateLh = rate, testConditions = condiciones, weightKg = sweatTest.initialWeightKg))
+        val conditions = condicionesActuales().copy(heartRateBpm = null)
+        saveProfile(profile.copy(sweatRateLh = rate, testConditions = conditions, weightKg = sweatTest.initialWeightKg))
         rate
     }
 
@@ -211,10 +211,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         trabajosSensores = listOf(
             viewModelScope.launch {
-                Sensors.heartRate(app).collect { lectura ->
-                    fc = lectura
+                Sensors.heartRate(app).collect { reading ->
+                    fc = reading
                     if (session?.pausedSince == null) {
-                        fcSumaPendiente += lectura.bpm
+                        fcSumaPendiente += reading.bpm
                         fcLecturasPendientes++
                     }
                 }

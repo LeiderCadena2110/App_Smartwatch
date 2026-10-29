@@ -26,42 +26,42 @@ import co.edu.ucc.hidrasmart.ui.withThousands
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
 @Composable
-fun PantallaInicio(vm: AppViewModel, ir: (String) -> Unit) {
+fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
     val total = vm.totalHoyMl
-    val meta = vm.profile.dailyGoalMl
+    val goal = vm.profile.dailyGoalMl
     val session = vm.session
 
     WearScreen {
-        item { AnilloProgreso(total, meta) }
+        item { ProgressRing(total, goal) }
 
         if (!vm.isProfileConfigured) {
-            item { ActionChip("Configura tu perfil", AppColors.Amber, { ir(Rutas.PROFILE) }, icon = Icons.Default.Person) }
+            item { ActionChip("Configura tu perfil", AppColors.Amber, { onNavigate(Routes.PROFILE) }, icon = Icons.Default.Person) }
         }
         if (session != null) {
             item {
                 ActionChip(
-                    "Volver a la sesión", AppColors.Blue, { ir(Rutas.SESION) },
+                    "Volver a la sesión", AppColors.Blue, { onNavigate(Routes.SESSION) },
                     detail = "${session.type} · ${formatDuration(vm.duracionMs(session))}",
                     icon = Icons.Default.PlayArrow,
                 )
             }
         }
-        item { ActionChip("Registrar toma", AppColors.Water, { ir(Rutas.REGISTRAR) }, icon = Icons.Default.Add) }
+        item { ActionChip("Registrar toma", AppColors.Water, { onNavigate(Routes.LOG_INTAKE) }, icon = Icons.Default.Add) }
         if (session == null) {
-            item { ActionChip("Entrenar", AppColors.Blue, { ir(Rutas.TIPO) }, icon = Icons.Default.PlayArrow) }
+            item { ActionChip("Entrenar", AppColors.Blue, { onNavigate(Routes.WORKOUT_TYPE) }, icon = Icons.Default.PlayArrow) }
         }
-        item { ActionChip("Historial", AppColors.DarkGray, { ir(Rutas.HISTORIAL) }, icon = Icons.Default.DateRange) }
-        item { ActionChip("Perfil y ajustes", AppColors.DarkGray, { ir(Rutas.PROFILE) }, icon = Icons.Default.Settings) }
+        item { ActionChip("Historial", AppColors.DarkGray, { onNavigate(Routes.HISTORY) }, icon = Icons.Default.DateRange) }
+        item { ActionChip("Perfil y ajustes", AppColors.DarkGray, { onNavigate(Routes.PROFILE) }, icon = Icons.Default.Settings) }
     }
 }
 
 /** Anillo con lo tomado hoy frente a la meta diaria. */
 @Composable
-private fun AnilloProgreso(total: Int, meta: Int) {
-    val progreso = if (meta > 0) (total.toFloat() / meta).coerceIn(0f, 1f) else 0f
+private fun ProgressRing(total: Int, goal: Int) {
+    val progress = if (goal > 0) (total.toFloat() / goal).coerceIn(0f, 1f) else 0f
     Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            progress = progreso,
+            progress = progress,
             modifier = Modifier.fillMaxSize(),
             indicatorColor = AppColors.LightWater,
             trackColor = AppColors.DarkGray,
@@ -69,7 +69,7 @@ private fun AnilloProgreso(total: Int, meta: Int) {
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("${total.withThousands()} ml", style = MaterialTheme.typography.title2)
-            Text("de ${meta.withThousands()} ml", style = MaterialTheme.typography.caption2, color = Color.LightGray)
+            Text("de ${goal.withThousands()} ml", style = MaterialTheme.typography.caption2, color = Color.LightGray)
         }
     }
 }

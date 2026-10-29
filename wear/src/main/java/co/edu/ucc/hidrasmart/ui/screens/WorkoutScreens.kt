@@ -37,33 +37,33 @@ import co.edu.ucc.hidrasmart.ui.formatDuration
 import co.edu.ucc.hidrasmart.ui.withThousands
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
-private val TIPOS = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
+private val WORKOUT_TYPES = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
 
 /** Elige el tipo de entrenamiento. Antes de empezar pide el permiso de sensores. */
 @Composable
-fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
+fun WorkoutTypeScreen(vm: AppViewModel, onStarted: () -> Unit) {
     val contexto = LocalContext.current
-    var tipoPendiente by remember { mutableStateOf<String?>(null) }
-    val pedirPermisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+    var pendingType by remember { mutableStateOf<String?>(null) }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         // Con o sin permisos se puede entrenar: sin sensor la FC es simulada y sin notificaciones
         // la alerta solo se ve con la app abierta
-        tipoPendiente?.let { type ->
+        pendingType?.let { type ->
             vm.iniciarSesion(type)
-            iniciado()
+            onStarted()
         }
     }
 
     WearScreen {
         item { ScreenTitle("Entrenar", "¿Qué vas a hacer?") }
-        TIPOS.forEach { type ->
+        WORKOUT_TYPES.forEach { type ->
             item {
                 ActionChip(type, AppColors.Blue, {
                     if (Sensors.hasPermissions(contexto)) {
                         vm.iniciarSesion(type)
-                        iniciado()
+                        onStarted()
                     } else {
-                        tipoPendiente = type
-                        pedirPermisos.launch(Sensors.workoutPermissions())
+                        pendingType = type
+                        permissionLauncher.launch(Sensors.workoutPermissions())
                     }
                 })
             }
@@ -80,32 +80,32 @@ fun PantallaElegirTipo(vm: AppViewModel, iniciado: () -> Unit) {
 }
 
 @Composable
-fun PantallaSesion(
+fun SessionScreen(
     vm: AppViewModel,
-    registrar: () -> Unit,
+    onLogIntake: () -> Unit,
     end: () -> Unit,
-    salir: () -> Unit,
-    abrirAlerta: () -> Unit,
+    onExit: () -> Unit,
+    onOpenAlert: () -> Unit,
 ) {
     val s = vm.session
     if (s == null) {
-        LaunchedEffect(Unit) { salir() }
+        LaunchedEffect(Unit) { onExit() }
         return
     }
-    val pausada = s.pausedSince != null
-    val faltaMs = (s.nextAlertAt - vm.now).coerceAtLeast(0)
+    val paused = s.pausedSince != null
+    val remainingMs = (s.nextAlertAt - vm.now).coerceAtLeast(0)
     val ml = vm.mlPerAlert()
-    val condiciones = vm.condicionesActuales()
-    val lectura = vm.fc
+    val conditions = vm.condicionesActuales()
+    val reading = vm.fc
 
     WearScreen {
-        item { Note(if (pausada) "${s.type} · EN PAUSA" else s.type, if (pausada) AppColors.Amber else Color.LightGray) }
+        item { Note(if (paused) "${s.type} · EN PAUSA" else s.type, if (paused) AppColors.Amber else Color.LightGray) }
         item { Text(formatDuration(vm.duracionMs(s)), style = MaterialTheme.typography.display3) }
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(Icons.Default.Favorite, contentDescription = "Frecuencia cardíaca", tint = AppColors.Red)
                 Text(
-                    if (lectura != null) "${lectura.bpm} lpm${if (lectura.simulated) " (simulada)" else ""}" else "-- lpm",
+                    if (reading != null) "${reading.bpm} lpm${if (reading.simulated) " (simulada)" else ""}" else "-- lpm",
                     style = MaterialTheme.typography.body1,
                 )
             }
@@ -113,28 +113,28 @@ fun PantallaSesion(
         item { Text("Tomado: ${s.drankMl.withThousands()} ml", style = MaterialTheme.typography.body2) }
         item {
             Note(
-                if (pausada) "Alertas en pausa"
-                else if (ml != null) "Próxima toma en ${formatDuration(faltaMs)} · ~$ml ml"
-                else "Recordatorio en ${formatDuration(faltaMs)}",
+                if (paused) "Alertas en pausa"
+                else if (ml != null) "Próxima toma en ${formatDuration(remainingMs)} · ~$ml ml"
+                else "Recordatorio en ${formatDuration(remainingMs)}",
                 Color.White,
             )
         }
         item {
             Note(
-                "${condiciones.temperatureC?.toFixed() ?: "--"} °C · ${condiciones.humidityPct?.toFixed(0) ?: "--"} % · " +
-                    "${condiciones.altitudeM?.toFixed(0) ?: "--"} m",
+                "${conditions.temperatureC?.toFixed() ?: "--"} °C · ${conditions.humidityPct?.toFixed(0) ?: "--"} % · " +
+                    "${conditions.altitudeM?.toFixed(0) ?: "--"} m",
             )
         }
         // Si la alerta se cerró deslizando, queda pendiente aquí
         if (vm.alert != null) {
-            item { ActionChip("Responder alerta", AppColors.Green, abrirAlerta) }
+            item { ActionChip("Responder alerta", AppColors.Green, onOpenAlert) }
         }
-        item { ActionChip("Registrar toma", AppColors.Water, registrar, icon = Icons.Default.Add) }
+        item { ActionChip("Registrar toma", AppColors.Water, onLogIntake, icon = Icons.Default.Add) }
         item {
-            ActionChip(if (pausada) "Reanudar" else "Pausar", if (pausada) AppColors.Blue else AppColors.Amber, vm::togglePause)
+            ActionChip(if (paused) "Reanudar" else "Pausar", if (paused) AppColors.Blue else AppColors.Amber, vm::togglePause)
         }
         item { ActionChip("Terminar", AppColors.Red, end) }
-        if (!pausada && vm.alert == null) {
+        if (!paused && vm.alert == null) {
             item {
                 ActionChip(
                     "Probar alarma (10 s)", AppColors.Gray, vm::probarAlarma,
@@ -147,28 +147,28 @@ fun PantallaSesion(
 
 /** Alerta dentro de la app (cuando la app está abierta). */
 @Composable
-fun PantallaAlerta(vm: AppViewModel, cerrar: () -> Unit) {
+fun AlertScreen(vm: AppViewModel, onClose: () -> Unit) {
     val alert = vm.alert
     if (alert == null) {
-        LaunchedEffect(Unit) { cerrar() }
+        LaunchedEffect(Unit) { onClose() }
         return
     }
-    ContenidoAlerta(
+    AlertContent(
         alert = alert,
-        onYaTome = {
+        onDrank = {
             vm.markDrank()
-            cerrar()
+            onClose()
         },
-        onPosponer = {
+        onSnooze = {
             vm.snooze()
-            cerrar()
+            onClose()
         },
     )
 }
 
 /** Contenido de la alerta; lo usan la app y la pantalla que sale sobre la esfera. */
 @Composable
-fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> Unit) {
+fun AlertContent(alert: IntakeAlert, onDrank: () -> Unit, onSnooze: () -> Unit) {
     WearScreen {
         item { ScreenTitle("¡Hora de hidratarte!") }
         item {
@@ -186,8 +186,8 @@ fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> 
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                RoundButton("✓", AppColors.Green, onYaTome, buttonSize = ButtonDefaults.DefaultButtonSize, description = "Ya tomé")
-                RoundButton("5'", AppColors.Gray, onPosponer, buttonSize = ButtonDefaults.DefaultButtonSize, description = "En 5 minutos")
+                RoundButton("✓", AppColors.Green, onDrank, buttonSize = ButtonDefaults.DefaultButtonSize, description = "Ya tomé")
+                RoundButton("5'", AppColors.Gray, onSnooze, buttonSize = ButtonDefaults.DefaultButtonSize, description = "En 5 minutos")
             }
         }
         item {
@@ -200,7 +200,7 @@ fun ContenidoAlerta(alert: IntakeAlert, onYaTome: () -> Unit, onPosponer: () -> 
 }
 
 @Composable
-fun PantallaConfirmarFin(end: () -> Unit, cancel: () -> Unit) {
+fun ConfirmEndScreen(end: () -> Unit, cancel: () -> Unit) {
     WearScreen {
         item { ScreenTitle("¿Terminar el entrenamiento?") }
         item { ActionChip("Sí, terminar", AppColors.Red, end) }
@@ -209,7 +209,7 @@ fun PantallaConfirmarFin(end: () -> Unit, cancel: () -> Unit) {
 }
 
 @Composable
-fun PantallaResumen(vm: AppViewModel, id: Long, listo: () -> Unit) {
+fun SummaryScreen(vm: AppViewModel, id: Long, onDone: () -> Unit) {
     val s = vm.sessions.firstOrNull { it.id == id }
     WearScreen {
         item { ScreenTitle("Resumen", s?.type) }
@@ -225,7 +225,7 @@ fun PantallaResumen(vm: AppViewModel, id: Long, listo: () -> Unit) {
             }
             item { Note("Guardado en el historial") }
         }
-        item { ActionChip("Listo", AppColors.Green, listo) }
+        item { ActionChip("Listo", AppColors.Green, onDone) }
     }
 }
 
