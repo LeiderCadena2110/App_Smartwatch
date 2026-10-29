@@ -1,6 +1,6 @@
 package co.edu.ucc.hidrasmart.ui.screens
 
-/** Rutas de navegación (ver el diagrama de jerarquía de la documentación). */
+/** Navigation routes (see the hierarchy diagram in the documentation). */
 object Routes {
     const val HOME = "inicio"
     const val LOG_INTAKE = "registrar"
@@ -17,6 +17,8 @@ object Routes {
     const val PROFILE = "perfil"
     const val EDIT_FIELD = "editar/{campo}"
     const val SWEAT_TEST = "prueba"
+    const val COACH = "coach"
+    const val PLAN = "plan"
 
     fun confirmation(ml: Int) = "confirmacion/$ml"
     fun summary(id: Long) = "resumen/$id"

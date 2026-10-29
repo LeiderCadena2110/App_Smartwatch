@@ -12,23 +12,25 @@ import androidx.navigation.navArgument
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
-import co.edu.ucc.hidrasmart.ui.screens.ProfileField
 import co.edu.ucc.hidrasmart.ui.screens.AlertScreen
-import co.edu.ucc.hidrasmart.ui.screens.ConfirmationScreen
+import co.edu.ucc.hidrasmart.ui.screens.CoachScreen
 import co.edu.ucc.hidrasmart.ui.screens.ConfirmEndScreen
+import co.edu.ucc.hidrasmart.ui.screens.ConfirmationScreen
+import co.edu.ucc.hidrasmart.ui.screens.CustomAmountScreen
 import co.edu.ucc.hidrasmart.ui.screens.DayDetailScreen
-import co.edu.ucc.hidrasmart.ui.screens.SessionDetailScreen
 import co.edu.ucc.hidrasmart.ui.screens.EditFieldScreen
-import co.edu.ucc.hidrasmart.ui.screens.WorkoutTypeScreen
 import co.edu.ucc.hidrasmart.ui.screens.HistoryScreen
 import co.edu.ucc.hidrasmart.ui.screens.HomeScreen
-import co.edu.ucc.hidrasmart.ui.screens.CustomAmountScreen
-import co.edu.ucc.hidrasmart.ui.screens.ProfileScreen
-import co.edu.ucc.hidrasmart.ui.screens.SweatTestScreen
 import co.edu.ucc.hidrasmart.ui.screens.LogIntakeScreen
-import co.edu.ucc.hidrasmart.ui.screens.SummaryScreen
-import co.edu.ucc.hidrasmart.ui.screens.SessionScreen
+import co.edu.ucc.hidrasmart.ui.screens.PlanScreen
+import co.edu.ucc.hidrasmart.ui.screens.ProfileField
+import co.edu.ucc.hidrasmart.ui.screens.ProfileScreen
 import co.edu.ucc.hidrasmart.ui.screens.Routes
+import co.edu.ucc.hidrasmart.ui.screens.SessionDetailScreen
+import co.edu.ucc.hidrasmart.ui.screens.SessionScreen
+import co.edu.ucc.hidrasmart.ui.screens.SummaryScreen
+import co.edu.ucc.hidrasmart.ui.screens.SweatTestScreen
+import co.edu.ucc.hidrasmart.ui.screens.WorkoutTypeScreen
 import co.edu.ucc.hidrasmart.ui.theme.HidraSmartTheme
 
 /**
@@ -141,6 +143,12 @@ fun HidraSmartApp(vm: AppViewModel = viewModel()) {
                 val field = runCatching { ProfileField.valueOf(entry.arguments?.getString("campo") ?: "") }
                     .getOrDefault(ProfileField.WEIGHT)
                 EditFieldScreen(vm, field) { nav.popBackStack() }
+            }
+            composable(Routes.COACH) {
+                CoachScreen(vm, onOpenPlan = { nav.navigate(Routes.PLAN) })
+            }
+            composable(Routes.PLAN) {
+                PlanScreen(vm)
             }
             composable(Routes.SWEAT_TEST) {
                 SweatTestScreen(vm) { nav.popBackStack() }
