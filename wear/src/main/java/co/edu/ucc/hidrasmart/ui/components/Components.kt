@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -150,6 +151,35 @@ fun RoundButton(
         colors = ButtonDefaults.primaryButtonColors(backgroundColor = color, contentColor = Color.White),
     ) {
         Text(text, fontSize = 20.sp)
+    }
+}
+
+/** Botón redondo de toma rápida: "+250 / ml". */
+@Composable
+fun QuickAddButton(ml: Int, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .size(ButtonDefaults.DefaultButtonSize)
+            .semantics { contentDescription = "Registrar $ml mililitros" },
+        colors = ButtonDefaults.primaryButtonColors(backgroundColor = AppColors.Water, contentColor = Color.White),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("+$ml", fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text("ml", fontSize = 10.sp, color = Color.White.copy(alpha = 0.8f), maxLines = 1)
+        }
+    }
+}
+
+/** Fila de botones de toma rápida (por ejemplo 150, 250 y 500 ml) para registrar con un toque. */
+@Composable
+fun QuickAddRow(amounts: List<Int>, onAdd: (Int) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        amounts.forEach { ml -> QuickAddButton(ml) { onAdd(ml) } }
     }
 }
 

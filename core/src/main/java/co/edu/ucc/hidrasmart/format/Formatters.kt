@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val spanishLocale: Locale = Locale.forLanguageTag("es-CO")
-private val zone: ZoneId = ZoneId.systemDefault()
+private val zone: ZoneId get() = ZoneId.systemDefault()
 private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", spanishLocale)
 private val dayFormatter = DateTimeFormatter.ofPattern("EEE d MMM", spanishLocale)
 

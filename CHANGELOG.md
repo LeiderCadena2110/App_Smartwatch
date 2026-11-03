@@ -1,5 +1,16 @@
 # Changelog
 
+## Sin publicar
+
+### Agregado
+- Reloj: botones de **toma rápida** (+150, +250, +500 ml) en el inicio, que registran con un solo toque.
+- Reloj: confirmación animada al registrar una toma (círculo con ✓, vibración y anillo que avanza hasta el total del día). Se cierra sola o al tocarla.
+- Reloj: íconos propios para Registrar toma (gota), Coach IA (destellos), Entrenar (cronómetro) e Historial.
+
+### Corregido
+- Reloj: el manifiesto apuntaba a `AlertaActivity` y `AlertaReceiver`, que ya no existen tras pasar los nombres a inglés. Las alertas con la app cerrada cerraban la app con un error y los botones "Ya tomé" / "En 5 min" no hacían nada.
+- Las fechas y horas usan la zona horaria actual del dispositivo aunque cambie con la app abierta.
+
 ## 2.0.0
 
 ### Agregado

@@ -5,25 +5,26 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
+import co.edu.ucc.hidrasmart.R
 import co.edu.ucc.hidrasmart.format.formatDuration
 import co.edu.ucc.hidrasmart.format.withThousands
 import co.edu.ucc.hidrasmart.ui.components.ActionChip
+import co.edu.ucc.hidrasmart.ui.components.QuickAddRow
 import co.edu.ucc.hidrasmart.ui.components.WearScreen
 import co.edu.ucc.hidrasmart.ui.navigation.Routes
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
@@ -39,6 +40,14 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
     WearScreen {
         item { ProgressRing(total, goal) }
 
+        // Toma rápida: un solo toque registra la cantidad y muestra la confirmación
+        item {
+            QuickAddRow(QUICK_AMOUNTS) { ml ->
+                vm.logIntake(ml)
+                onNavigate(Routes.confirmation(ml))
+            }
+        }
+
         if (!vm.isProfileConfigured) {
             item { ActionChip("Configura tu perfil", AppColors.Amber, { onNavigate(Routes.PROFILE) }, icon = Icons.Default.Person) }
         }
@@ -51,18 +60,34 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
                 )
             }
         }
-        item { ActionChip("Registrar toma", AppColors.Water, { onNavigate(Routes.LOG_INTAKE) }, icon = Icons.Default.Add) }
+        item {
+            ActionChip(
+                "Registrar toma", AppColors.Water, { onNavigate(Routes.LOG_INTAKE) },
+                detail = "Otra cantidad",
+                icon = ImageVector.vectorResource(R.drawable.ic_drop),
+            )
+        }
         item {
             ActionChip(
                 "Coach IA", AppColors.Ai, { onNavigate(Routes.COACH) },
                 detail = topInsight?.title ?: "Consejos personalizados",
-                icon = Icons.Default.Star,
+                icon = ImageVector.vectorResource(R.drawable.ic_sparkle),
             )
         }
         if (session == null) {
-            item { ActionChip("Entrenar", AppColors.Blue, { onNavigate(Routes.WORKOUT_TYPE) }, icon = Icons.Default.PlayArrow) }
+            item {
+                ActionChip(
+                    "Entrenar", AppColors.Blue, { onNavigate(Routes.WORKOUT_TYPE) },
+                    icon = ImageVector.vectorResource(R.drawable.ic_stopwatch),
+                )
+            }
         }
-        item { ActionChip("Historial", AppColors.DarkGray, { onNavigate(Routes.HISTORY) }, icon = Icons.Default.DateRange) }
+        item {
+            ActionChip(
+                "Historial", AppColors.DarkGray, { onNavigate(Routes.HISTORY) },
+                icon = ImageVector.vectorResource(R.drawable.ic_history),
+            )
+        }
         item { ActionChip("Perfil y ajustes", AppColors.DarkGray, { onNavigate(Routes.PROFILE) }, icon = Icons.Default.Settings) }
     }
 }

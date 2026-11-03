@@ -76,8 +76,13 @@ fun HidraSmartApp(vm: AppViewModel = viewModel()) {
                 Routes.CONFIRMATION,
                 arguments = listOf(navArgument("ml") { type = NavType.IntType }),
             ) { entry ->
-                ConfirmationScreen(ml = entry.arguments?.getInt("ml") ?: 0) {
-                    nav.popBackStack(Routes.LOG_INTAKE, inclusive = true)
+                ConfirmationScreen(
+                    ml = entry.arguments?.getInt("ml") ?: 0,
+                    totalMl = vm.todayTotalMl,
+                    goalMl = vm.profile.dailyGoalMl,
+                ) {
+                    // Desde "Registrar toma" se vuelve a quien la abrió; desde los botones rápidos del inicio, al inicio
+                    if (!nav.popBackStack(Routes.LOG_INTAKE, inclusive = true)) nav.popBackStack()
                 }
             }
             composable(Routes.WORKOUT_TYPE) {

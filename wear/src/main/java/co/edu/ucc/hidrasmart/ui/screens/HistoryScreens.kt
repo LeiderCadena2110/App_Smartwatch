@@ -1,12 +1,13 @@
 package co.edu.ucc.hidrasmart.ui.screens
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
+import co.edu.ucc.hidrasmart.R
 import co.edu.ucc.hidrasmart.format.displayName
 import co.edu.ucc.hidrasmart.format.formatDuration
 import co.edu.ucc.hidrasmart.format.toLocalDate
@@ -58,7 +59,7 @@ fun DayDetailScreen(vm: AppViewModel, date: String, onOpenSession: (Long) -> Uni
                 ActionChip(
                     s.type, AppColors.Blue, { onOpenSession(s.id) },
                     detail = "${s.startTime.toTimeText()} · ${formatDuration(s.durationSec * 1000)}",
-                    icon = Icons.Default.PlayArrow,
+                    icon = ImageVector.vectorResource(R.drawable.ic_stopwatch),
                 )
             }
         }
