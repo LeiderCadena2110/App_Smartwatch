@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Destellos: "Coach IA" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M10,4 Q10.9,11.1 18,12 Q10.9,12.9 10,20 Q9.1,12.9 2,12 Q9.1,11.1 10,4 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M18.5,1.5 Q18.9,5.1 22.5,5.5 Q18.9,5.9 18.5,9.5 Q18.1,5.9 14.5,5.5 Q18.1,5.1 18.5,1.5 Z" />
+</vector>

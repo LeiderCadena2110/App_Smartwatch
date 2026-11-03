@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cronómetro: "Entrenar" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M5,14 A7,7 0 1,0 19,14 A7,7 0 1,0 5,14 Z M12,14 L12,10.5 M10,2.5 L14,2.5 M12,2.5 L12,7 M18,8 L19.5,6.5" />
+</vector>
