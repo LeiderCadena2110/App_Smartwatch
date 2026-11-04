@@ -18,12 +18,12 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.BuildConfig
 import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
-import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.sensors.Sensors
 import co.edu.ucc.hidrasmart.ui.components.ActionChip
 import co.edu.ucc.hidrasmart.ui.components.Note
 import co.edu.ucc.hidrasmart.ui.components.NumberStepper

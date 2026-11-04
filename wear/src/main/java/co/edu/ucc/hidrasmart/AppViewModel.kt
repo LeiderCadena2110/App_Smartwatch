@@ -17,9 +17,7 @@ import co.edu.ucc.hidrasmart.ai.HydrationPredictor
 import co.edu.ucc.hidrasmart.ai.Insight
 import co.edu.ucc.hidrasmart.ai.WaterPlan
 import co.edu.ucc.hidrasmart.alerts.SessionEngine
-import co.edu.ucc.hidrasmart.data.HeartRateReading
 import co.edu.ucc.hidrasmart.data.HydrationRepository
-import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.data.WeatherService
 import co.edu.ucc.hidrasmart.domain.ActiveSession
 import co.edu.ucc.hidrasmart.domain.Conditions
@@ -30,6 +28,8 @@ import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.domain.Weather
 import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.sensors.HeartRateReading
+import co.edu.ucc.hidrasmart.sensors.Sensors
 import co.edu.ucc.hidrasmart.surfaces.WatchSurfaces
 import java.time.LocalDate
 import java.time.LocalDateTime

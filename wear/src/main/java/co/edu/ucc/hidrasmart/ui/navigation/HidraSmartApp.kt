@@ -127,7 +127,7 @@ fun HidraSmartApp(vm: AppViewModel = viewModel()) {
                 HistoryScreen(vm) { date -> nav.navigate(Routes.day(date)) }
             }
             composable(Routes.DAY) { entry ->
-                DayDetailScreen(vm, date = entry.arguments?.getString("fecha") ?: "") { id ->
+                DayDetailScreen(vm, date = entry.arguments?.getString("date") ?: "") { id ->
                     nav.navigate(Routes.sessionDetail(id))
                 }
             }
@@ -145,7 +145,7 @@ fun HidraSmartApp(vm: AppViewModel = viewModel()) {
                 )
             }
             composable(Routes.EDIT_FIELD) { entry ->
-                val field = runCatching { ProfileField.valueOf(entry.arguments?.getString("campo") ?: "") }
+                val field = runCatching { ProfileField.valueOf(entry.arguments?.getString("field") ?: "") }
                     .getOrDefault(ProfileField.WEIGHT)
                 EditFieldScreen(vm, field) { nav.popBackStack() }
             }

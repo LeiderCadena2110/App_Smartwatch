@@ -24,7 +24,7 @@ import co.edu.ucc.hidrasmart.data.HydrationRepository
  */
 object WorkoutOngoing {
 
-    private const val CHANNEL_ID = "entrenamiento_en_curso"
+    private const val CHANNEL_ID = "workout_in_progress"
     private const val NOTIFICATION_ID = 1002
 
     /** Muestra o actualiza la actividad (al empezar, pausar o reanudar). */
@@ -57,14 +57,14 @@ object WorkoutOngoing {
         val status = if (paused) {
             Status.Builder()
                 .addTemplate(context.getString(R.string.ongoing_status_paused))
-                .addPart("tipo", Status.TextPart(session.type))
+                .addPart("type", Status.TextPart(session.type))
                 .build()
         } else {
             val activeMs = (System.currentTimeMillis() - session.startTime - session.pausedMs).coerceAtLeast(0)
             Status.Builder()
                 .addTemplate(context.getString(R.string.ongoing_status_running))
-                .addPart("tipo", Status.TextPart(session.type))
-                .addPart("tiempo", Status.StopwatchPart(SystemClock.elapsedRealtime() - activeMs))
+                .addPart("type", Status.TextPart(session.type))
+                .addPart("time", Status.StopwatchPart(SystemClock.elapsedRealtime() - activeMs))
                 .build()
         }
 

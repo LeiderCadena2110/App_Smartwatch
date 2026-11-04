@@ -25,9 +25,9 @@ import co.edu.ucc.hidrasmart.domain.IntakeAlert
  */
 object AlarmScheduler {
 
-    const val ACTION_ALARM = "co.edu.ucc.hidrasmart.ALARMA"
-    const val ACTION_DRANK = "co.edu.ucc.hidrasmart.YA_TOME"
-    const val ACTION_SNOOZE = "co.edu.ucc.hidrasmart.POSPONER"
+    const val ACTION_ALARM = "co.edu.ucc.hidrasmart.ALARM"
+    const val ACTION_DRANK = "co.edu.ucc.hidrasmart.DRANK"
+    const val ACTION_SNOOZE = "co.edu.ucc.hidrasmart.SNOOZE"
 
     // Canal nuevo (v2) para que tome sonido de alarma e importancia alta aunque exista el anterior
     const val CHANNEL_ID = "alertas_hidratacion_v2"

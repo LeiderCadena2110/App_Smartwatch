@@ -21,7 +21,7 @@
     <string name="ongoing_title">Entrenando: %1$s</string>
     <string name="ongoing_running">Toca para volver a la sesión</string>
     <string name="ongoing_paused">En pausa</string>
-    <!-- #tipo# y #tiempo# los reemplaza Wear OS con el tipo de entrenamiento y el cronómetro -->
-    <string name="ongoing_status_running" translatable="false">#tipo# · #tiempo#</string>
-    <string name="ongoing_status_paused">#tipo# · en pausa</string>
+    <!-- #type# y #time# los reemplaza Wear OS con el tipo de entrenamiento y el cronómetro -->
+    <string name="ongoing_status_running" translatable="false">#type# · #time#</string>
+    <string name="ongoing_status_paused">#type# · en pausa</string>
 </resources>

@@ -1,4 +1,4 @@
-package co.edu.ucc.hidrasmart.data
+package co.edu.ucc.hidrasmart.sensors
 
 import android.Manifest
 import android.content.Context
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/** Lectura de frecuencia cardíaca. [simulada] = true cuando no hay sensor (por ejemplo, en el emulador). */
+/** Lectura de frecuencia cardíaca. [simulated] = true cuando no hay sensor (por ejemplo, en el emulador). */
 data class HeartRateReading(val bpm: Int, val simulated: Boolean)
 
 object Sensors {

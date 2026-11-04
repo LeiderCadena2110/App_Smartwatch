@@ -10,6 +10,10 @@
 - Reloj: **complicación** "Agua de hoy" para la esfera (mini anillo frente a la meta o texto corto).
 - Reloj: **actividad en curso** durante el entrenamiento: cronómetro en la esfera y en Recientes para volver a la sesión con un toque.
 
+### Cambiado
+- Reloj: la carpeta `wear/.../data` pasa a llamarse `sensors` (solo tiene `Sensors.kt` y ya no comparte paquete con `core/data`).
+- Valores internos en inglés: rutas de navegación (`home`, `history`, `profile`...), acciones de las alarmas (`ALARM`, `DRANK`, `SNOOZE`) y constantes de la Tile y de la actividad en curso. Las claves donde se guardan los datos no cambian, para no perder el historial.
+
 ### Corregido
 - Reloj: el manifiesto apuntaba a `AlertaActivity` y `AlertaReceiver`, que ya no existen tras pasar los nombres a inglés. Las alertas con la app cerrada cerraban la app con un error y los botones "Ya tomé" / "En 5 min" no hacían nada.
 - Las fechas y horas usan la zona horaria actual del dispositivo aunque cambie con la app abierta.

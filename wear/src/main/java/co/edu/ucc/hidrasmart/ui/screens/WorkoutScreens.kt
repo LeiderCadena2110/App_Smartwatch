@@ -25,11 +25,11 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import co.edu.ucc.hidrasmart.AppViewModel
 import co.edu.ucc.hidrasmart.alerts.AlertDiagnostics
-import co.edu.ucc.hidrasmart.data.Sensors
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.format.formatDuration
 import co.edu.ucc.hidrasmart.format.toFixed
 import co.edu.ucc.hidrasmart.format.withThousands
+import co.edu.ucc.hidrasmart.sensors.Sensors
 import co.edu.ucc.hidrasmart.ui.components.ActionChip
 import co.edu.ucc.hidrasmart.ui.components.EdgeProgress
 import co.edu.ucc.hidrasmart.ui.components.InsightCard

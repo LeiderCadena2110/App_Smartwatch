@@ -53,7 +53,7 @@ class HydrationTileService : TileService() {
         immediate(ResourceBuilders.Resources.Builder().setVersion(RESOURCES_VERSION).build())
 
     /**
-     * Cada vez que se dibuja la Tile, el botón recibe un id nuevo ("agregar@hora").
+     * Cada vez que se dibuja la Tile, el botón recibe un id nuevo ("add@hora").
      * Así un mismo toque nunca se cuenta dos veces aunque el sistema repita la petición.
      */
     private fun handleClick(clickedId: String) {
@@ -69,10 +69,10 @@ class HydrationTileService : TileService() {
         private const val RESOURCES_VERSION = "1"
         private const val FRESHNESS_MS = 15 * 60_000L
         private const val QUICK_ML = 250
-        private const val ADD_PREFIX = "agregar@"
-        private const val OPEN_APP_ID = "abrir_app"
-        private const val PREFS = "tile_hidratacion"
-        private const val KEY_HANDLED = "ultimo_toque"
+        private const val ADD_PREFIX = "add@"
+        private const val OPEN_APP_ID = "open_app"
+        private const val PREFS = "hydration_tile"
+        private const val KEY_HANDLED = "last_handled_click"
 
         private val LIGHT_WATER = argb(0xFF4FC3F7.toInt())
         private val GREEN = argb(0xFF66BB6A.toInt())

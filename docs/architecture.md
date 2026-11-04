@@ -17,7 +17,7 @@
 | `wear` | raíz | `MainActivity`, `AppViewModel` |
 | | `alerts` | `SessionEngine` (reglas del entrenamiento), `AlarmScheduler`, `AlertReceiver`, `AlertActivity`, `AlertDiagnostics` |
 | | `surfaces` | `HydrationTileService` (Tile), `HydrationComplicationService` (complicación), `WorkoutOngoing` (actividad en curso), `WatchSurfaces` (las actualiza al registrar una toma), `DailyProgress` |
-| | `data` | `Sensors`: frecuencia cardíaca y barómetro |
+| | `sensors` | `Sensors`: frecuencia cardíaca y barómetro |
 | | `ui` | `components`, `navigation` (`HidraSmartApp`, `Routes`), `screens` (Home, Intake, Workout, Coach, History, Profile), `theme` |
 | `mobile` | raíz | `MainActivity`, `MobileViewModel` |
 | | `ui` | `components`, `navigation` (barra inferior), `screens` (Home, Coach, History, Profile), `theme` |
