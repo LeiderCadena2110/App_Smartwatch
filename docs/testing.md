@@ -18,6 +18,29 @@ Hay 31 pruebas en `core/src/test`: 12 de la calculadora NATA y 19 de la IA. Tamb
 
 Durante el entrenamiento, **Probar alarma (10 s)** programa la alarma real para dentro de 10 segundos.
 
+## Tile, complicación y actividad en curso (reloj)
+
+**Tile**
+1. En la esfera, desliza hacia la izquierda hasta el final de las Tiles.
+2. Toca **+ Agregar Tile** (o mantén presionada una Tile y elige **+**) y escoge **Hidratación de hoy**.
+3. Toca **+250 ml**: el total y el anillo se actualizan sin abrir la app. Tocar el número abre la app.
+
+En Android Studio también se puede instalar sola: arriba, en la lista de configuraciones, elige **Edit Configurations… › + › Wear OS Tile**, módulo `wear`, servicio `HydrationTileService`, y pulsa **Run**.
+
+**Complicación**
+1. Mantén presionada la esfera › **Personalizar** (o el lápiz).
+2. Desliza hasta las complicaciones, toca un espacio libre y elige **HidraSmart › Agua de hoy**.
+3. Registra una toma en la app: la complicación cambia al instante.
+
+**Actividad en curso**
+1. Inicia un entrenamiento y acepta el permiso de notificaciones.
+2. Sal a la esfera con el botón lateral: abajo aparece el ícono del cronómetro. Tócalo para volver a la sesión.
+3. En la lista de apps, la sección **Recientes** muestra el tipo de entrenamiento y el tiempo. Al pausar dice "en pausa".
+
+## Pantallas pequeñas
+
+Crea también un emulador **Wear OS Small Round** y revisa que el inicio, la confirmación y la Tile no se corten.
+
 ## Frecuencia cardíaca en el emulador
 
 Si no hay sensor o no se da el permiso, la app muestra una frecuencia **simulada** y lo indica en pantalla. En un reloj real usa el sensor de frecuencia cardíaca.

@@ -99,5 +99,13 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.compose.ui.tooling)
 
+    // Tile, complicación de la esfera y actividad en curso durante el entrenamiento
+    implementation(libs.wear.tiles)
+    implementation(libs.wear.protolayout)
+    implementation(libs.wear.protolayout.material)
+    implementation(libs.wear.complications.data.source.ktx)
+    implementation(libs.wear.ongoing)
+    implementation(libs.androidx.concurrent.futures)
+
     testImplementation(libs.junit)
 }

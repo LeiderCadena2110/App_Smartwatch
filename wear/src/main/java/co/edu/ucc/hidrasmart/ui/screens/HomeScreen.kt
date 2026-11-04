@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -37,7 +39,11 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
     val session = vm.session
     val topInsight = remember(vm.intakes, vm.sessions, vm.profile) { vm.insights().firstOrNull() }
 
-    WearScreen {
+    // La pantalla arranca centrada en el anillo (elemento 0) para que no se monte sobre la hora
+    WearScreen(
+        listState = rememberScalingLazyListState(initialCenterItemIndex = 0),
+        autoCentering = AutoCenteringParams(itemIndex = 0),
+    ) {
         item { ProgressRing(total, goal) }
 
         // Toma rápida: un solo toque registra la cantidad y muestra la confirmación

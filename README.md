@@ -25,6 +25,9 @@ Cómo instalarlos (incluido el reloj): [docs/installation.md](docs/installation.
 - Arco de cuenta regresiva en el borde de la pantalla hasta la próxima toma.
 - **Coach IA**: consejos, preguntas por voz y análisis de cada entrenamiento.
 - **Planear**: el modelo de IA del reloj predice cuánta agua llevar.
+- Toma rápida (+150, +250, +500 ml) desde el inicio, con confirmación animada.
+- **Tile** con el progreso del día y botón +250 ml, y **complicación** para la esfera.
+- Actividad en curso: el entrenamiento activo aparece en la esfera.
 
 **Celular (Android)**
 - Registro rápido de tomas y anillo de progreso diario.
@@ -55,6 +58,7 @@ App_Smartwatch/
 ├── wear/                         App del reloj (Wear OS)
 │   └── src/main/java/co/edu/ucc/hidrasmart/
 │       ├── alerts/               AlarmScheduler, SessionEngine, AlertActivity...
+│       ├── surfaces/             Tile, complicación y actividad en curso
 │       ├── data/                 Sensors (frecuencia cardíaca y barómetro)
 │       └── ui/                   components, navigation, screens, theme
 ├── mobile/                       App del celular (Android)

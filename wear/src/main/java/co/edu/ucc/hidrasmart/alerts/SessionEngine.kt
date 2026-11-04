@@ -8,6 +8,8 @@ import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.Intake
 import co.edu.ucc.hidrasmart.domain.IntakeAlert
 import co.edu.ucc.hidrasmart.domain.SavedSession
+import co.edu.ucc.hidrasmart.surfaces.WatchSurfaces
+import co.edu.ucc.hidrasmart.surfaces.WorkoutOngoing
 
 /**
  * Reglas del entrenamiento y de las alertas. Todo se guarda en el reloj, así funciona
@@ -28,6 +30,7 @@ object SessionEngine {
         repo.saveAlert(null)
         repo.saveActiveSession(session)
         AlarmScheduler.schedule(context, session.nextAlertAt)
+        WorkoutOngoing.show(context)
     }
 
     /** Llega la hora: calcula los ml, guarda la alerta, avisa y programa la siguiente. */
@@ -102,10 +105,15 @@ object SessionEngine {
         AlarmScheduler.schedule(context, next)
     }
 
-    fun logIntake(context: Context, ml: Int) {
+    /**
+     * Registra una toma. [refreshTile] es false cuando la registra la propia Tile,
+     * que ya se dibuja con el total nuevo.
+     */
+    fun logIntake(context: Context, ml: Int, refreshTile: Boolean = true) {
         val repo = HydrationRepository(context)
         repo.addIntake(Intake(now(), ml))
         repo.activeSession()?.let { repo.saveActiveSession(it.copy(drankMl = it.drankMl + ml)) }
+        WatchSurfaces.refresh(context, includeTile = refreshTile)
     }
 
     fun togglePause(context: Context) {
@@ -122,6 +130,7 @@ object SessionEngine {
             repo.saveActiveSession(resumed)
             AlarmScheduler.schedule(context, resumed.nextAlertAt)
         }
+        WorkoutOngoing.show(context) // muestra "En pausa" o vuelve a contar el tiempo
     }
 
     /** Suma un bloque de lecturas de frecuencia cardíaca al promedio de la sesión. */
@@ -164,6 +173,7 @@ object SessionEngine {
         )
         repo.saveSession(saved)
         repo.saveActiveSession(null)
+        WorkoutOngoing.hide(context)
         return saved.id
     }
 }

@@ -30,6 +30,7 @@ import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.domain.Weather
 import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.surfaces.WatchSurfaces
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -132,6 +133,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         profile = p
         isProfileConfigured = true
         SessionEngine.adjustInterval(getApplication<Application>())
+        // La meta diaria puede haber cambiado: actualizar la Tile y la complicación
+        WatchSurfaces.refresh(getApplication<Application>())
         reload()
     }
 

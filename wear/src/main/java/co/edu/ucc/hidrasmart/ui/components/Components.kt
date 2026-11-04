@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
@@ -45,10 +46,14 @@ import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import co.edu.ucc.hidrasmart.ui.theme.AppColors
 
-/** Estructura común de cada pantalla: hora arriba, lista que se escala en los bordes y barra de posición. */
+/**
+ * Estructura común de cada pantalla: hora arriba, lista que se escala en los bordes y barra de posición.
+ * Por defecto la lista arranca centrada en el segundo elemento; [autoCentering] y [listState] lo cambian.
+ */
 @Composable
 fun WearScreen(
     listState: ScalingLazyListState = rememberScalingLazyListState(),
+    autoCentering: AutoCenteringParams = AutoCenteringParams(),
     edge: (@Composable () -> Unit)? = null,
     content: ScalingLazyListScope.() -> Unit,
 ) {
@@ -61,6 +66,7 @@ fun WearScreen(
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
+                autoCentering = autoCentering,
                 content = content,
             )
             // Elemento dibujado sobre el borde de la pantalla redonda (por ejemplo, una cuenta regresiva)

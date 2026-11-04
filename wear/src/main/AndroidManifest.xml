@@ -62,5 +62,40 @@
         <receiver
             android:name=".alerts.AlertReceiver"
             android:exported="false" />
+
+        <!-- Tile: deslizar la esfera hacia un lado muestra el progreso del día y "+250 ml" -->
+        <service
+            android:name=".surfaces.HydrationTileService"
+            android:description="@string/tile_description"
+            android:exported="true"
+            android:icon="@drawable/ic_drop"
+            android:label="@string/tile_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview" />
+        </service>
+
+        <!-- Complicación: lo tomado hoy en la esfera del reloj -->
+        <service
+            android:name=".surfaces.HydrationComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_drop"
+            android:label="@string/complication_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="RANGED_VALUE,SHORT_TEXT" />
+            <!-- Se actualiza al registrar una toma; además cada 15 min por el cambio de día -->
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="900" />
+        </service>
     </application>
 </manifest>

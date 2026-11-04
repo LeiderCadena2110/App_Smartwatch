@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vista previa de la Tile en el selector de Tiles: anillo de progreso, gota y botón "+250 ml" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <!-- Fondo -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M96,0 A96,96 0 1,1 95.99,0 Z" />
+    <!-- Pista del anillo -->
+    <path
+        android:strokeColor="#FF2B2B2B"
+        android:strokeWidth="8"
+        android:pathData="M96,8 A88,88 0 1,1 95.99,8" />
+    <!-- Progreso (unos 60 %) -->
+    <path
+        android:strokeColor="#FF4FC3F7"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M96,8 A88,88 0 1,1 44.3,167.2" />
+    <!-- Gota -->
+    <path
+        android:fillColor="#FF4FC3F7"
+        android:pathData="M96,52 C96,52 78,74 78,86 A18,18 0 0,0 114,86 C114,74 96,52 96,52 Z" />
+    <!-- Botón -->
+    <path
+        android:fillColor="#FF0288D1"
+        android:pathData="M70,120 L122,120 A14,14 0 0,1 122,148 L70,148 A14,14 0 0,1 70,120 Z" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M88,134 L104,134 M96,126 L96,142" />
+</vector>
