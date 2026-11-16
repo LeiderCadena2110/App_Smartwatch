@@ -47,6 +47,6 @@ Si no hay sensor o no se da el permiso, la app muestra una frecuencia **simulada
 
 ## Probar la IA
 
-- **Sin clave de Gemini:** el Coach IA responde con la IA local. La pantalla dice "IA en el reloj · sin internet".
+- **Sin servidor configurado:** el Coach IA responde con la IA local. La pantalla dice "IA en el reloj · sin internet".
 - **Modelo predictivo:** en el celular, Historial › **Entrenamiento**, registra 3 entrenamientos con distinta duración. En Coach IA › Planear, la fuente cambia a "Modelo IA personal".
-- **Con clave:** pégala en Perfil (celular) o en `local.properties`. Las respuestas dirán "Gemini".
+- **Con servidor:** pon `API_BASE_URL` en `local.properties`. La app no acepta claves de API.

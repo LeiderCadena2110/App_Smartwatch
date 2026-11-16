@@ -9,7 +9,8 @@ import org.json.JSONObject
 
 /**
  * Cliente mínimo de la API de Gemini (Google AI Studio) con HttpURLConnection.
- * La clave se lee de local.properties (GEMINI_API_KEY) y nunca se sube a GitHub.
+ * Las apps ya no lo usan: una clave dentro de la app se puede extraer. La llamada a Gemini
+ * pasa al servidor hidrasmart-api, que guarda la clave en Secret Manager.
  */
 class GeminiClient(
     private val apiKey: String,
@@ -20,7 +21,7 @@ class GeminiClient(
     /** Devuelve el texto generado. Lanza IOException si no hay conexión o la API responde con error. */
     suspend fun generate(system: String, prompt: String, maxOutputTokens: Int = 512, temperature: Double = 0.6): String =
         withContext(Dispatchers.IO) {
-            check(isConfigured) { "Falta GEMINI_API_KEY" }
+            check(isConfigured) { "Falta la clave de Gemini" }
             val url = URL("$BASE_URL/${model.ifBlank { DEFAULT_MODEL }}:generateContent")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
@@ -44,7 +45,7 @@ class GeminiClient(
         }
 
     companion object {
-        /** Modelo rápido y económico; se puede cambiar con GEMINI_MODEL en local.properties. */
+        /** Modelo rápido y económico. */
         const val DEFAULT_MODEL = "gemini-3.5-flash-lite"
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 

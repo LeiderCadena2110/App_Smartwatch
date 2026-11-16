@@ -11,14 +11,12 @@ import androidx.lifecycle.viewModelScope
 import co.edu.ucc.hidrasmart.ai.AiCoach
 import co.edu.ucc.hidrasmart.ai.CoachAnswer
 import co.edu.ucc.hidrasmart.ai.CoachInput
-import co.edu.ucc.hidrasmart.ai.GeminiClient
 import co.edu.ucc.hidrasmart.ai.HydrationInsights
 import co.edu.ucc.hidrasmart.ai.HydrationPredictor
 import co.edu.ucc.hidrasmart.ai.Insight
 import co.edu.ucc.hidrasmart.ai.WaterPlan
 import co.edu.ucc.hidrasmart.alerts.SessionEngine
 import co.edu.ucc.hidrasmart.data.HydrationRepository
-import co.edu.ucc.hidrasmart.data.WeatherService
 import co.edu.ucc.hidrasmart.domain.ActiveSession
 import co.edu.ucc.hidrasmart.domain.Conditions
 import co.edu.ucc.hidrasmart.domain.Factor
@@ -71,7 +69,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     // ---------------- Coach de IA ----------------
-    private val coach = AiCoach(GeminiClient(BuildConfig.GEMINI_API_KEY, BuildConfig.GEMINI_MODEL))
+    // Sin claves en la app: mientras no exista el cliente de hidrasmart-api (Bloque 2),
+    // el coach responde con la IA del reloj (predictor + sistema experto), que no necesita internet.
+    private val coach = AiCoach(null)
     private var coachJob: Job? = null
 
     var coachAnswer by mutableStateOf<CoachAnswer?>(null)
@@ -79,7 +79,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var coachLoading by mutableStateOf(false)
         private set
 
-    /** true si hay clave de Gemini; si no, responde la IA local. */
+    /** true si el coach puede usar la IA en la nube (servidor hidrasmart-api); si no, responde la IA local. */
     val cloudAiEnabled: Boolean get() = coach.cloudEnabled
 
     private var sensorJobs: List<Job> = emptyList()
@@ -149,20 +149,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------- Clima y condiciones ----------------
 
     fun refreshWeather() {
-        val key = BuildConfig.OPENWEATHER_API_KEY
-        if (key.isBlank()) {
-            weatherMessage = "Sin clave de clima: se usan los valores manuales"
-            return
-        }
-        viewModelScope.launch {
-            try {
-                val c = WeatherService.fetch(profile.city, key)
-                repo.saveWeather(c)
-                weather = c
-                weatherMessage = null
-            } catch (e: Exception) {
-                weatherMessage = "Sin conexión: se usa el último clima guardado"
-            }
+        // El clima en línea se consultará a través de hidrasmart-api (Bloque 2): la app ya no lleva
+        // la clave de OpenWeatherMap. Mientras tanto se usa el último clima guardado o los valores manuales.
+        weatherMessage = if (BuildConfig.API_BASE_URL.isBlank()) {
+            "Clima en línea no configurado: se usan los valores manuales"
+        } else {
+            "Clima en línea disponible en la próxima versión: se usan los valores manuales"
         }
     }
 
@@ -198,7 +190,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Predicción del modelo entrenado en el reloj: cuánta agua llevar a un entrenamiento. */
     fun waterPlan(type: String?, minutes: Int): WaterPlan = HydrationPredictor.plan(type, minutes, profile, sessions)
 
-    /** Pregunta al coach (Gemini si hay clave; si no, IA local). [question] null = consejo para este momento. */
+    /** Pregunta al coach (IA en la nube si está disponible; si no, IA local). [question] null = consejo para este momento. */
     fun askCoach(question: String?) {
         coachJob?.cancel()
         coachLoading = true

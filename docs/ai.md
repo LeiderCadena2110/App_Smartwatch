@@ -33,17 +33,14 @@ Reglas que analizan los datos guardados y producen hallazgos con nivel de riesgo
 
 ## 3. Coach generativo — `AiCoach` y `GeminiClient`
 
-- Llama a la API `generateContent` de **Google Gemini** (modelo por defecto `gemini-3.5-flash-lite`, configurable con `GEMINI_MODEL`).
+- Usa **Google Gemini** (modelo por defecto `gemini-3.5-flash-lite`) **a través del servidor `hidrasmart-api`**: la app no lleva la clave.
 - `PromptBuilder` envía como contexto el análisis del sistema experto, la predicción del modelo y el resumen de los últimos entrenamientos. **Solo datos de hidratación**: ni nombre ni ubicación exacta.
 - Instrucciones del sistema: español de Colombia, sin diagnósticos médicos, y en el reloj máximo 2 oraciones.
 - Si no hay clave, no hay conexión o la API falla, responde `LocalCoach`. La app nunca se queda sin respuesta.
 
-### Configurar la clave
+### Configuración
 
-- **Celular:** Perfil › Coach de IA › pega la clave (se guarda solo en el teléfono).
-- **Reloj y compilación:** `GEMINI_API_KEY=...` en `local.properties`.
-
-La clave es gratuita en [Google AI Studio](https://aistudio.google.com/apikey).
+La clave de Gemini vive solo en el servidor (Secret Manager). La app recibe la URL del servidor en `API_BASE_URL` (`local.properties` o la variable de repositorio de GitHub). Hasta que el cliente del servidor esté integrado, el coach de ambas apps responde con la IA local.
 
 ## Pruebas
 

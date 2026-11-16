@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import co.edu.ucc.hidrasmart.domain.HydrationCalculator
 import co.edu.ucc.hidrasmart.domain.SweatTest
@@ -122,33 +120,17 @@ private fun SweatTestSection(vm: MobileViewModel) {
     result?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = BrandColors.Water) }
 }
 
-/** Clave de Gemini guardada solo en este teléfono. */
+/** Estado del coach de IA. La app no guarda ni pide claves: la IA en la nube pasa por el servidor hidrasmart-api. */
 @Composable
 private fun AiSettingsSection(vm: MobileViewModel) {
-    var key by rememberSaveable { mutableStateOf(vm.userGeminiKey) }
     SectionTitle("Coach de IA")
     Text(
-        if (vm.cloudAiEnabled) "Gemini activo. Si no hay internet responde la IA local."
-        else "Sin clave: el coach usa la IA local, que funciona sin internet.",
+        if (vm.cloudAiEnabled) "IA en la nube activa. Si no hay internet, responde la IA del teléfono."
+        else "El coach usa la IA del teléfono, que funciona sin internet.",
         style = MaterialTheme.typography.bodyMedium,
     )
-    OutlinedTextField(
-        value = key,
-        onValueChange = { key = it.trim() },
-        label = { Text("Clave de Gemini (Google AI Studio)") },
-        singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.fillMaxWidth(),
-    )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = { vm.saveGeminiKey(key) }) { Text("Guardar clave") }
-        OutlinedButton(onClick = {
-            key = ""
-            vm.saveGeminiKey("")
-        }) { Text("Quitar") }
-    }
     Text(
-        "La clave se guarda solo en este teléfono. Consíguela gratis en aistudio.google.com.",
+        "La app no guarda claves de API. Tus datos de hidratación se quedan en este teléfono.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

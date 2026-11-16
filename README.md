@@ -74,9 +74,7 @@ Más detalle: [docs/architecture.md](docs/architecture.md).
 
 1. Android Studio › **Open** › la carpeta del proyecto › **Trust Project**. La ruta no debe tener tildes, ñ ni espacios.
 2. Si pide la JVM de Gradle, elige **JVM 21**.
-3. Copia `local.properties.example` como `local.properties` y agrega tus claves (opcionales):
-   - `OPENWEATHER_API_KEY`: clima real.
-   - `GEMINI_API_KEY`: coach generativo (sin ella funciona la IA local).
+3. (Opcional) Copia `local.properties.example` como `local.properties` y pon en `API_BASE_URL` la URL del servidor `hidrasmart-api`. La app **no lleva claves de API**: las de Gemini y OpenWeatherMap viven solo en el servidor. Sin URL, el coach usa la IA local y el clima los valores manuales.
 4. Arriba elige la configuración **wear** (emulador *Wear OS Large Round*) o **mobile** (emulador de teléfono) y pulsa **Run ▶**.
 
 Pruebas unitarias: clic derecho en `core/src/test` › **Run 'Tests in ...'**, o en la terminal:
@@ -88,11 +86,11 @@ Pruebas unitarias: clic derecho en `core/src/test` › **Run 'Tests in ...'**, o
 ## Publicar una versión
 
 ```bash
-git tag v2.0.0
-git push origin v2.0.0
+git tag v2.1.0
+git push origin v2.1.0
 ```
 
-GitHub Actions compila, prueba, firma y publica los dos APK en Releases. Ver [docs/release.md](docs/release.md).
+GitHub Actions prueba, revisa con lint, firma y publica en Releases los App Bundles (`.aab`, para Google Play) y los APK (para instalar a mano). Ver [docs/release.md](docs/release.md).
 
 ## Cálculo de hidratación (guía NATA 2017 + ajuste propio)
 

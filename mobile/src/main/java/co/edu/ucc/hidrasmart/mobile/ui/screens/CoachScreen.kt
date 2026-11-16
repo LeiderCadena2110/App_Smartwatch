@@ -49,7 +49,7 @@ import co.edu.ucc.hidrasmart.mobile.ui.components.AiCard
 import co.edu.ucc.hidrasmart.mobile.ui.theme.BrandColors
 import kotlin.math.roundToInt
 
-/** Coach de IA: planificador con el modelo del dispositivo y chat con Gemini (o IA local). */
+/** Coach de IA: planificador con el modelo del dispositivo y chat con la IA en la nube (o IA local). */
 @Composable
 fun CoachScreen(vm: MobileViewModel) {
     var input by rememberSaveable { mutableStateOf("") }
@@ -71,8 +71,8 @@ fun CoachScreen(vm: MobileViewModel) {
             item { PlannerCard(vm) }
             item {
                 Text(
-                    if (vm.cloudAiEnabled) "Chat con Gemini. Si no hay internet, responde la IA local."
-                    else "IA local (sin internet). Agrega tu clave de Gemini en Perfil para respuestas generativas.",
+                    if (vm.cloudAiEnabled) "Chat con IA en la nube. Si no hay internet, responde la IA local."
+                    else "IA local: funciona sin internet con tus datos de este teléfono.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -1,12 +1,9 @@
-# Copia este archivo como local.properties (Android Studio ya crea uno con sdk.dir)
-# y agrega tus claves. Ese archivo NO se sube a GitHub.
-
-# Clima: clave gratuita de https://openweathermap.org/api (Current Weather Data).
-# Sin clave, la app usa la temperatura y humedad manuales del perfil.
-OPENWEATHER_API_KEY=pega_aqui_tu_clave
-
-# Coach de IA: clave gratuita de Google AI Studio (https://aistudio.google.com/apikey).
-# Sin clave, el coach responde con la IA local (sin internet).
-GEMINI_API_KEY=pega_aqui_tu_clave
-# Opcional: modelo de Gemini (por defecto gemini-3.5-flash-lite)
-# GEMINI_MODEL=gemini-3.5-flash-lite
+# Copia este archivo como local.properties (Android Studio ya crea uno con sdk.dir; no borres esa línea).
+# local.properties NO se sube a GitHub.
+#
+# La app no lleva claves de API. Las claves de Gemini y OpenWeatherMap viven solo en el servidor
+# hidrasmart-api (Google Cloud Run, Secret Manager). La app solo necesita la URL de ese servidor.
+#
+# Sin API_BASE_URL la app funciona igual: el coach usa la IA local y el clima usa los valores
+# manuales del perfil.
+API_BASE_URL=https://hidrasmart-api-xxxxxxxxxx-ue.a.run.app

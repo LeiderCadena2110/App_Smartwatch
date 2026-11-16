@@ -7,29 +7,36 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Same keys as the watch app, read from local.properties (never committed)
+// La app no lleva claves de API: solo conoce la URL del servidor hidrasmart-api.
+// Se lee de la variable de entorno API_BASE_URL (CI) o de local.properties (este archivo NO se sube a GitHub).
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
+val apiBaseUrl: String = System.getenv("API_BASE_URL")
+    ?: localProperties.getProperty("API_BASE_URL")
+    ?: ""
+
+// Versión común de reloj y celular (gradle.properties). Cada uno tiene su propio rango de versionCode
+// para que Google Play acepte los dos paquetes en el mismo listado: reloj 2000xxx, celular 1000xxx.
+val appVersionCode = providers.gradleProperty("appVersionCode").get().toInt()
+val appVersionName = providers.gradleProperty("appVersionName").get()
 
 android {
     namespace = "co.edu.ucc.hidrasmart.mobile"
     compileSdk = 36
 
     defaultConfig {
-        // Same application id as the watch app, so both are the same app on Google Play
+        // Mismo applicationId que el reloj: en Google Play son una sola app con dos paquetes
         applicationId = "co.edu.ucc.hidrasmart"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 4
-        versionName = "2.0.0"
-        buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"")
-        buildConfigField("String", "GEMINI_MODEL", "\"${localProperties.getProperty("GEMINI_MODEL", "")}\"")
+        targetSdk = 36 // Google Play exige API 36 para apps de teléfono desde el 31 de agosto de 2026
+        versionCode = 1_000_000 + appVersionCode
+        versionName = appVersionName
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     // Firma: en GitHub Actions se usa el keystore de los secretos; en local, la firma de depuración.
-    // Así el APK de release siempre se puede instalar.
     signingConfigs {
         create("release") {
             val keystore = System.getenv("HIDRASMART_KEYSTORE")
@@ -49,7 +56,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: reduce y ofusca el código y quita recursos sin usar
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = if (System.getenv("HIDRASMART_KEYSTORE") != null) {
                 signingConfigs.getByName("release")
             } else {
@@ -59,9 +69,10 @@ android {
     }
 
     lint {
-        // Los avisos de lint no bloquean la compilación del APK en CI
-        abortOnError = false
-        checkReleaseBuilds = false
+        // Un error de lint detiene la compilación de release y el job de lint en CI
+        abortOnError = true
+        checkReleaseBuilds = true
+        warningsAsErrors = false
     }
 
     compileOptions {

@@ -1,7 +1,6 @@
 package co.edu.ucc.hidrasmart.mobile
 
 import android.app.Application
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +9,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.ucc.hidrasmart.ai.AiCoach
 import co.edu.ucc.hidrasmart.ai.CoachInput
-import co.edu.ucc.hidrasmart.ai.GeminiClient
 import co.edu.ucc.hidrasmart.ai.HydrationInsights
 import co.edu.ucc.hidrasmart.ai.HydrationPredictor
 import co.edu.ucc.hidrasmart.ai.Insight
@@ -44,7 +42,15 @@ data class ChatMessage(
 class MobileViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = HydrationRepository(app)
-    private val settings = app.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE)
+
+    // Sin claves en la app: mientras no exista el cliente de hidrasmart-api (Bloque 2),
+    // el coach responde con la IA del teléfono (predictor + sistema experto), que no necesita internet.
+    private val coach = AiCoach(null)
+
+    init {
+        // Versiones anteriores guardaban aquí una clave de Gemini en texto plano: se borra del teléfono
+        app.deleteSharedPreferences(LEGACY_SETTINGS)
+    }
 
     var profile by mutableStateOf(repo.profile())
         private set
@@ -53,16 +59,12 @@ class MobileViewModel(app: Application) : AndroidViewModel(app) {
     var sessions by mutableStateOf(repo.sessions())
         private set
 
-    /** Clave de Gemini escrita por el usuario en Perfil (tiene prioridad sobre la del APK). */
-    var userGeminiKey by mutableStateOf(settings.getString(KEY_GEMINI, "").orEmpty())
-        private set
-
     val messages = mutableStateListOf<ChatMessage>()
     var thinking by mutableStateOf(false)
         private set
 
-    private val effectiveKey: String get() = userGeminiKey.ifBlank { BuildConfig.GEMINI_API_KEY }
-    val cloudAiEnabled: Boolean get() = effectiveKey.isNotBlank()
+    /** true si el coach puede usar la IA en la nube (servidor hidrasmart-api); si no, responde la IA local. */
+    val cloudAiEnabled: Boolean get() = coach.cloudEnabled
 
     val todayTotalMl: Int
         get() {
@@ -101,11 +103,6 @@ class MobileViewModel(app: Application) : AndroidViewModel(app) {
         )
         saveProfile(profile.copy(sweatRateLh = rate, testConditions = conditions, weightKg = test.initialWeightKg))
         rate
-    }
-
-    fun saveGeminiKey(key: String) {
-        userGeminiKey = key.trim()
-        settings.edit().putString(KEY_GEMINI, userGeminiKey).apply()
     }
 
     // ---------------- Entrenamientos (registro manual desde el celular) ----------------
@@ -154,7 +151,6 @@ class MobileViewModel(app: Application) : AndroidViewModel(app) {
         thinking = true
         viewModelScope.launch {
             try {
-                val coach = AiCoach(GeminiClient(effectiveKey, BuildConfig.GEMINI_MODEL))
                 val answer = coach.ask(text, coachInput(), compact = false)
                 messages += ChatMessage(answer.text, fromUser = false, fromCloud = answer.fromCloud, note = answer.note)
             } finally {
@@ -168,8 +164,7 @@ class MobileViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     companion object {
-        private const val SETTINGS = "hidrasmart_settings"
-        private const val KEY_GEMINI = "gemini_api_key"
+        private const val LEGACY_SETTINGS = "hidrasmart_settings"
         val WORKOUT_TYPES = listOf("Correr", "Ciclismo", "Gimnasio", "Otro")
     }
 }

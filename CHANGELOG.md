@@ -1,6 +1,19 @@
 # Changelog
 
-## Sin publicar
+## 2.1.0 (sin publicar)
+
+### Seguridad
+- La app ya no incluye claves de API: se quitaron `GEMINI_API_KEY`, `OPENWEATHER_API_KEY` y `EMBED_GEMINI_KEY` de Gradle, de `local.properties.example` y de GitHub Actions. La app solo recibe `API_BASE_URL` (servidor `hidrasmart-api`).
+- Se quitó la opción de pegar una clave de Gemini en el perfil del celular; la clave guardada por versiones anteriores se borra al abrir la app.
+- Mientras se integra el servidor, el coach responde con la IA local y el clima usa los valores manuales.
+
+### Google Play
+- Celular con `targetSdk 36`; reloj en `35`.
+- `versionCode` separados: reloj `2000000 + appVersionCode`, celular `1000000 + appVersionCode` (`gradle.properties`).
+- R8 activado (`isMinifyEnabled` e `isShrinkResources`) con `proguard-rules.pro`; lint bloqueante.
+- GitHub Actions genera App Bundles (`.aab`), además de APK, y guarda el `mapping.txt`.
+- Reloj: se quitó `USE_EXACT_ALARM` (Play lo reserva a apps de alarma y calendario); se usa `SCHEDULE_EXACT_ALARM`, que concede el usuario.
+- Celular: permiso `INTERNET` declarado explícitamente.
 
 ### Agregado
 - Reloj: botones de **toma rápida** (+150, +250, +500 ml) en el inicio, que registran con un solo toque.

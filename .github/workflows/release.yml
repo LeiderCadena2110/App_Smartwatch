@@ -1,5 +1,12 @@
-# Publica los APK del reloj y del celular en GitHub Releases al subir una etiqueta vX.Y.Z:
-#   git tag v2.0.0 && git push origin v2.0.0
+# Publica una versión de HidraSmart al subir una etiqueta vX.Y.Z:
+#   git tag v2.1.0 && git push origin v2.1.0
+#
+# Genera:
+#   - App Bundles (.aab) del reloj y del celular para subir a Google Play.
+#   - APK firmados para instalar a mano (el reloj se instala con adb; ver docs/installation.md).
+#   - mapping.txt de R8 para leer los errores de la versión ofuscada.
+#
+# La app no lleva claves de API: solo la URL del servidor (variable de repositorio API_BASE_URL).
 name: Release
 
 on:
@@ -13,7 +20,12 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+
+    env:
+      # Variable de repositorio (Settings > Secrets and variables > Actions > Variables).
+      # Es una URL pública, no un secreto. Vacía = la app usa solo la IA local.
+      API_BASE_URL: ${{ vars.API_BASE_URL }}
 
     steps:
       - name: Checkout
@@ -28,19 +40,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties
-        env:
-          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          EMBED_GEMINI_KEY: ${{ vars.EMBED_GEMINI_KEY }}
-        run: |
-          echo "OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}" > local.properties
-          # La clave de Gemini queda dentro del APK público: solo se incluye si lo decides
-          # creando la variable de repositorio EMBED_GEMINI_KEY=true (ver docs/release.md).
-          if [ "${EMBED_GEMINI_KEY}" = "true" ]; then
-            echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> local.properties
-          fi
-
       - name: Decode signing keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -49,33 +48,58 @@ jobs:
             echo "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.jks"
             echo "HIDRASMART_KEYSTORE=${RUNNER_TEMP}/release.jks" >> "$GITHUB_ENV"
           else
-            echo "::warning::Sin KEYSTORE_BASE64: los APK se firman con la clave de depuración."
+            echo "::warning::Sin KEYSTORE_BASE64: se firma con la clave de depuración. Google Play rechazará estos .aab."
           fi
 
       - name: Unit tests
         run: ./gradlew --no-daemon :core:testReleaseUnitTest
 
-      - name: Build release APKs
+      - name: Lint (los errores detienen la publicación)
+        run: ./gradlew --no-daemon :wear:lintRelease :mobile:lintRelease
+
+      - name: Build release App Bundles and APKs
         env:
           HIDRASMART_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           HIDRASMART_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           HIDRASMART_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew --no-daemon :wear:assembleRelease :mobile:assembleRelease
+        run: ./gradlew --no-daemon :wear:bundleRelease :mobile:bundleRelease :wear:assembleRelease :mobile:assembleRelease
 
-      - name: Rename APKs
+      - name: Collect files
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          mkdir -p dist
+          mkdir -p dist mapping
+          cp wear/build/outputs/bundle/release/wear-release.aab "dist/HidraSmart-watch-${VERSION}.aab"
+          cp mobile/build/outputs/bundle/release/mobile-release.aab "dist/HidraSmart-phone-${VERSION}.aab"
           cp wear/build/outputs/apk/release/wear-release.apk "dist/HidraSmart-watch-${VERSION}.apk"
           cp mobile/build/outputs/apk/release/mobile-release.apk "dist/HidraSmart-phone-${VERSION}.apk"
-          ls -la dist
+          cp wear/build/outputs/mapping/release/mapping.txt "mapping/watch-mapping-${VERSION}.txt"
+          cp mobile/build/outputs/mapping/release/mapping.txt "mapping/phone-mapping-${VERSION}.txt"
+          ls -la dist mapping
+
+      - name: Upload R8 mapping (privado, para leer errores)
+        uses: actions/upload-artifact@v4
+        with:
+          name: r8-mapping-${{ github.ref_name }}
+          path: mapping/*.txt
+          retention-days: 90
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports-${{ github.ref_name }}
+          path: |
+            wear/build/reports/lint-results-release.html
+            mobile/build/reports/lint-results-release.html
+          if-no-files-found: ignore
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.apk
+          files: dist/*
           generate_release_notes: true
           body: |
             ## Descargas
-            - **HidraSmart-phone**: instálalo en tu celular Android (8.0 o superior).
-            - **HidraSmart-watch**: instálalo en tu reloj Wear OS 3 o superior (ver docs/installation.md).
+            - **HidraSmart-phone-…aab / HidraSmart-watch-…aab**: App Bundles para subir a Google Play Console.
+            - **HidraSmart-phone-…apk**: instálalo en tu celular Android (8.0 o superior).
+            - **HidraSmart-watch-…apk**: instálalo en tu reloj Wear OS 3 o superior con adb (ver docs/installation.md).

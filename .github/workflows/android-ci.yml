@@ -1,4 +1,6 @@
-# Compila y prueba en cada push y pull request. Los APK quedan como artefactos del run.
+# Compila, prueba y revisa con lint en cada push y pull request.
+# También arma los App Bundles de release (con R8) para detectar a tiempo si la ofuscación rompe algo.
+# Los APK de depuración quedan como artefactos del run.
 name: Android CI
 
 on:
@@ -10,7 +12,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+
+    env:
+      # Variable de repositorio con la URL pública del servidor; vacía = solo IA local
+      API_BASE_URL: ${{ vars.API_BASE_URL }}
 
     steps:
       - name: Checkout
@@ -25,17 +31,17 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties
-        env:
-          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-        run: |
-          echo "OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}" > local.properties
-
       - name: Unit tests (calculator and AI)
         run: ./gradlew --no-daemon :core:testDebugUnitTest
 
-      - name: Build watch and phone APKs
+      - name: Lint (los errores hacen fallar el build)
+        run: ./gradlew --no-daemon :wear:lintDebug :mobile:lintDebug
+
+      - name: Build debug APKs
         run: ./gradlew --no-daemon :wear:assembleDebug :mobile:assembleDebug
+
+      - name: Build release App Bundles (verifica R8)
+        run: ./gradlew --no-daemon :wear:bundleRelease :mobile:bundleRelease
 
       - name: Upload test report
         if: always()
@@ -43,6 +49,16 @@ jobs:
         with:
           name: test-report
           path: core/build/reports/tests/
+          if-no-files-found: ignore
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: |
+            wear/build/reports/lint-results-debug.html
+            mobile/build/reports/lint-results-debug.html
           if-no-files-found: ignore
 
       - name: Upload APKs
