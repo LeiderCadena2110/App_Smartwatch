@@ -2,8 +2,20 @@
 # local.properties NO se sube a GitHub.
 #
 # La app no lleva claves de API. Las claves de Gemini y OpenWeatherMap viven solo en el servidor
-# hidrasmart-api (Google Cloud Run, Secret Manager). La app solo necesita la URL de ese servidor.
+# hidrasmart-api. La app solo necesita la URL del servidor y los datos públicos de Firebase (App Check).
 #
-# Sin API_BASE_URL la app funciona igual: el coach usa la IA local y el clima usa los valores
-# manuales del perfil.
-API_BASE_URL=https://hidrasmart-api-xxxxxxxxxx-ue.a.run.app
+# Sin API_BASE_URL la app funciona igual: el coach usa la IA local y el clima los valores manuales.
+
+# --- Opción A: servidor desplegado en Cloud Run (ver docs/server.md) ---
+# API_BASE_URL=https://hidrasmart-api-xxxxxxxxxx-ue.a.run.app
+
+# --- Opción B: servidor en tu computador (npm run dev, APP_CHECK_MODE=off) ---
+# 10.0.2.2 es tu computador visto desde el emulador. Solo funciona en la versión de depuración.
+# API_BASE_URL=http://10.0.2.2:8080
+
+# --- Firebase App Check (necesario con el servidor de Cloud Run) ---
+# Firebase > Configuración del proyecto > Tus apps > app Android co.edu.ucc.hidrasmart.
+# No son secretos: identifican el proyecto.
+# FIREBASE_APP_ID=1:123456789012:android:abcdef1234567890
+# FIREBASE_API_KEY=AIzaSy...
+# FIREBASE_PROJECT_ID=hidrasmart-prod-leider

@@ -7,6 +7,16 @@
 - Se quitó la opción de pegar una clave de Gemini en el perfil del celular; la clave guardada por versiones anteriores se borra al abrir la app.
 - Mientras se integra el servidor, el coach responde con la IA local y el clima usa los valores manuales.
 
+### App conectada al servidor
+- Coach de reloj y celular vuelve a usar Gemini, ahora a través de `hidrasmart-api` (`HidraSmartApi`, `CloudServices`). Si la nube falla, responde la IA local y la pantalla dice por qué: sin internet, límite diario, pregunta bloqueada, app no verificada o servicio caído.
+- `CoachContextBuilder` envía datos agregados y recortados a los rangos del servidor.
+- Firebase App Check (BoM 35.1.0): Play Integrity en release y proveedor de depuración en debug, iniciado con `FIREBASE_APP_ID`, `FIREBASE_API_KEY` y `FIREBASE_PROJECT_ID` (sin `google-services.json`).
+- Id aleatorio de instalación para la cuota diaria.
+- Reloj: el clima vuelve a funcionar a través del servidor.
+- Versión de depuración: permite HTTP hacia `10.0.2.2` para probar con el servidor local.
+- Se eliminaron `GeminiClient`, `PromptBuilder` y `WeatherService` de la app: el prompt y las claves viven en el servidor.
+- GitHub Actions actualizadas a versiones con Node 24 (`checkout@v5`, `setup-java@v5`, `setup-gradle@v6`, `upload-artifact@v6`, `setup-node@v5`).
+
 ### Servidor `hidrasmart-api` (nuevo, carpeta `server/`)
 - Node.js 24 + TypeScript + Fastify, listo para Google Cloud Run.
 - `POST /v1/coach`: prompt versionado en el servidor (portado de `PromptBuilder`), peso enviado como rango, pregunta separada y marcada como no confiable, `safetySettings`, 8 s máximo con 1 reintento, corte de circuito, caché de 15 min para el consejo sin pregunta.

@@ -203,7 +203,18 @@ Guarda esa URL: es la `API_BASE_URL` de la app (variable de repositorio en GitHu
 3. **App Check › Apps › Play Integrity › Registrar**.
 4. Para el emulador se usa el **proveedor de depuración**: la app imprime un token de depuración en Logcat que se registra en **App Check › Administrar tokens de depuración**. Nunca lo actives en la versión de release.
 
-La integración de App Check en la app (Kotlin) es el siguiente bloque.
+5. En **Configuración del proyecto › Tus apps** copia el **ID de la app**, la **clave de API web** y el **ID del proyecto**. Ponlos en `local.properties` (`FIREBASE_APP_ID`, `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`) y como **variables** del repositorio en GitHub con los mismos nombres, junto con `API_BASE_URL`. No son secretos: identifican el proyecto. No hace falta `google-services.json`.
+6. Corre la app de depuración en el emulador y busca en **Logcat** `DebugAppCheckProvider`: aparece *"Enter this debug secret into the allow list…"* con un código. Regístralo en **App Check › Apps › ⋮ › Administrar tokens de depuración**. Desde ese momento ese emulador puede hablar con el servidor de producción.
+
+## Probar la app con el servidor local
+
+Antes de desplegar se puede probar todo en tu computador: el servidor corre con `npm run dev` y el emulador lo alcanza en `10.0.2.2`.
+
+1. En `server/.env`: `APP_CHECK_MODE=off`, `QUOTA_BACKEND=memory` y tu `GEMINI_API_KEY`. Con una clave del plan gratuito Google puede usar lo que envías para mejorar sus productos: usa solo datos de prueba.
+2. `cd server` y `npm run dev`. Deja esa terminal abierta.
+3. En `local.properties` de la app: `API_BASE_URL=http://10.0.2.2:8080` (sin datos de Firebase).
+4. **Sync Project with Gradle Files** y **Run** de la versión de depuración. La versión de depuración permite HTTP solo hacia `10.0.2.2` y `localhost` (`src/debug/res/xml/network_security_config.xml`); la de release solo acepta HTTPS.
+5. En el reloj, **Coach IA** debe decir "Respuesta de Gemini", y en Perfil aparece el clima real (si pusiste `OPENWEATHER_API_KEY`). En la terminal del servidor se ve cada petición.
 
 ## Despliegues automáticos desde GitHub
 

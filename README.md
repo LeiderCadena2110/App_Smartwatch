@@ -41,7 +41,7 @@ Cómo instalarlos (incluido el reloj): [docs/installation.md](docs/installation.
 | --- | --- | --- |
 | `HydrationPredictor` | Aprendizaje automático: regresión ridge entrenada en el dispositivo con tus entrenamientos | Sí |
 | `HydrationInsights` + `LocalCoach` | Sistema experto basado en reglas (ritmo del día, racha, cumplimiento) | Sí |
-| `AiCoach` + `GeminiClient` | IA generativa (Google Gemini) con el análisis local como contexto | No (usa el coach local si falla) |
+| `AiCoach` + servidor `hidrasmart-api` | IA generativa (Google Gemini, desde el servidor) con el análisis local como contexto | No (usa el coach local si falla) |
 
 Detalles y fórmulas: [docs/ai.md](docs/ai.md).
 
@@ -52,7 +52,8 @@ App_Smartwatch/
 ├── core/                         Módulo compartido (biblioteca Android)
 │   └── src/main/java/co/edu/ucc/hidrasmart/
 │       ├── ai/                   Predictor, insights, coach local, Gemini
-│       ├── data/                 HydrationRepository, WeatherService
+│       ├── data/                 HydrationRepository
+│       ├── remote/               Cliente del servidor (HidraSmartApi), App Check, id de instalación
 │       ├── domain/               Models, HydrationCalculator (NATA 2017)
 │       └── format/               Formatters (fechas, ml, duraciones)
 ├── wear/                         App del reloj (Wear OS)
@@ -76,7 +77,7 @@ Más detalle: [docs/architecture.md](docs/architecture.md).
 
 1. Android Studio › **Open** › la carpeta del proyecto › **Trust Project**. La ruta no debe tener tildes, ñ ni espacios.
 2. Si pide la JVM de Gradle, elige **JVM 21**.
-3. (Opcional) Copia `local.properties.example` como `local.properties` y pon en `API_BASE_URL` la URL del servidor `hidrasmart-api`. La app **no lleva claves de API**: las de Gemini y OpenWeatherMap viven solo en el servidor. Sin URL, el coach usa la IA local y el clima los valores manuales.
+3. (Opcional) Copia `local.properties.example` como `local.properties` y pon la URL del servidor `hidrasmart-api` (`API_BASE_URL`) y los datos de Firebase App Check. La app **no lleva claves de API**: las de Gemini y OpenWeatherMap viven solo en el servidor. Sin URL, el coach usa la IA local y el clima los valores manuales. Para probar con el servidor en tu computador, ver [docs/server.md](docs/server.md#probar-la-app-con-el-servidor-local).
 4. Arriba elige la configuración **wear** (emulador *Wear OS Large Round*) o **mobile** (emulador de teléfono) y pulsa **Run ▶**.
 
 Pruebas unitarias: clic derecho en `core/src/test` › **Run 'Tests in ...'**, o en la terminal:

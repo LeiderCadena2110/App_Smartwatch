@@ -89,21 +89,11 @@ class HydrationInsightsTest {
     }
 
     @Test
-    fun prompt_escapesJsonAndIncludesContext() {
-        val json = PromptBuilder.requestJson("sys \"x\"", "línea 1\nlínea 2", 100, 0.5)
-        assertTrue(json, json.contains("sys \\\"x\\\""))
-        assertTrue(json, json.contains("línea 1\\nlínea 2"))
-        assertTrue(json, json.contains("\"maxOutputTokens\":100"))
-        val ctx = PromptBuilder.context(input(LocalTime.of(14, 0), listOf(intake(today, 8, 500))), null)
-        assertTrue(ctx, ctx.contains("tomado hoy: 500 ml"))
-    }
-
-    @Test
-    fun prompt_fitForWatchCutsLongText() {
+    fun coachText_fitForWatchCutsLongText() {
         val long = "Toma agua. ".repeat(40)
-        val fitted = PromptBuilder.fitForWatch(long, 100)
+        val fitted = CoachText.fitForWatch(long, 100)
         assertTrue(fitted.length <= 101)
         assertTrue(fitted.endsWith("…"))
-        assertEquals("Hola mundo", PromptBuilder.fitForWatch("**Hola**   mundo"))
+        assertEquals("Hola mundo", CoachText.fitForWatch("**Hola**   mundo"))
     }
 }

@@ -31,23 +31,24 @@ Reglas que analizan los datos guardados y producen hallazgos con nivel de riesgo
 
 `LocalCoach` responde preguntas frecuentes ("¿Cómo voy hoy?", "¿Cuánta agua llevo…?") con esos datos. Es la respuesta de respaldo cuando no hay internet.
 
-## 3. Coach generativo — `AiCoach` y `GeminiClient`
+## 3. Coach generativo — `AiCoach` + servidor `hidrasmart-api`
 
-- Usa **Google Gemini** (modelo por defecto `gemini-3.5-flash-lite`) **a través del servidor `hidrasmart-api`**: la app no lleva la clave.
-- `PromptBuilder` envía como contexto el análisis del sistema experto, la predicción del modelo y el resumen de los últimos entrenamientos. **Solo datos de hidratación**: ni nombre ni ubicación exacta.
-- Instrucciones del sistema: español de Colombia, sin diagnósticos médicos, y en el reloj máximo 2 oraciones.
-- Si no hay clave, no hay conexión o la API falla, responde `LocalCoach`. La app nunca se queda sin respuesta.
+- La app **no habla con Gemini**: envía al servidor `hidrasmart-api` (Cloud Run) un contexto con datos agregados y la pregunta. El servidor guarda la clave, arma el prompt (versionado) y llama a **Google Gemini** (modelo por defecto `gemini-3.5-flash-lite`). Ver [server.md](server.md).
+- `CoachContextBuilder` arma el contexto: hora, meta, lo tomado hoy y lo esperado, promedio de 7 días, racha, tasa de sudoración, últimos 5 entrenamientos, la predicción del modelo y los hallazgos del sistema experto. **Solo datos de hidratación**: ni nombre ni ubicación; el servidor convierte el peso en un rango de 5 kg.
+- `HidraSmartApi` hace la petición con el token de **Firebase App Check** y un id aleatorio de la instalación (para la cuota diaria).
+- Si no hay servidor, no hay internet, se acabó la cuota diaria, la pregunta se bloquea o la nube falla, responde `LocalCoach` y la pantalla dice por qué (`AiCoach.noteFor`). La app nunca se queda sin respuesta.
 
 ### Configuración
 
-La clave de Gemini vive solo en el servidor (Secret Manager). La app recibe la URL del servidor en `API_BASE_URL` (`local.properties` o la variable de repositorio de GitHub). Hasta que el cliente del servidor esté integrado, el coach de ambas apps responde con la IA local.
+`API_BASE_URL` y los datos de Firebase (`FIREBASE_APP_ID`, `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`) van en `local.properties` o como variables de repositorio de GitHub. No son secretos.
 
 ## Pruebas
 
-`core/src/test/java/co/edu/ucc/hidrasmart/ai/` tiene 19 pruebas:
+`core/src/test/java/co/edu/ucc/hidrasmart/ai/` tiene 28 pruebas:
 
 - El ridge recupera una recta exacta y la regularización reduce los pesos.
 - El modelo aprende la tasa según la intensidad (R² > 0,99 con datos sintéticos).
 - El orden de respaldo funciona: modelo → prueba de sudoración → guía general.
 - Ritmo diario, racha, cumplimiento y riesgo.
-- Respuestas del coach local y armado del JSON para Gemini.
+- Respuestas del coach local.
+- Contrato con el servidor: campos obligatorios, sin campos de más, valores recortados a los rangos que acepta, códigos de error y respaldo local con su motivo.

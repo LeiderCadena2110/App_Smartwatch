@@ -7,14 +7,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// La app no lleva claves de API: solo conoce la URL del servidor hidrasmart-api.
-// Se lee de la variable de entorno API_BASE_URL (CI) o de local.properties (este archivo NO se sube a GitHub).
+// La app no lleva claves de API. Solo conoce la URL del servidor hidrasmart-api y los datos públicos
+// del proyecto de Firebase (para App Check). Se leen de variables de entorno (CI) o de local.properties
+// (este archivo NO se sube a GitHub). Vacíos = la app usa solo su IA local.
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val apiBaseUrl: String = System.getenv("API_BASE_URL")
-    ?: localProperties.getProperty("API_BASE_URL")
+fun setting(name: String): String = System.getenv(name)?.takeIf { it.isNotBlank() }
+    ?: localProperties.getProperty(name)
     ?: ""
 
 // Versión común de reloj y celular (gradle.properties). Cada uno tiene su propio rango de versionCode
@@ -32,7 +33,10 @@ android {
         targetSdk = 35 // Google Play exige API 35 para Wear OS
         versionCode = 2_000_000 + appVersionCode
         versionName = appVersionName
-        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "API_BASE_URL", "\"${setting("API_BASE_URL")}\"")
+        buildConfigField("String", "FIREBASE_APP_ID", "\"${setting("FIREBASE_APP_ID")}\"")
+        buildConfigField("String", "FIREBASE_API_KEY", "\"${setting("FIREBASE_API_KEY")}\"")
+        buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${setting("FIREBASE_PROJECT_ID")}\"")
     }
 
     // Firma: en GitHub Actions se usa el keystore de los secretos; en local, la firma de depuración.

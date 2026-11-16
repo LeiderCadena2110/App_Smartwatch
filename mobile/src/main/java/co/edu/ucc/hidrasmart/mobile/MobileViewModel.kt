@@ -21,6 +21,8 @@ import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SavedSession
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.remote.CloudServices
+import co.edu.ucc.hidrasmart.remote.FirebaseConfig
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -43,9 +45,15 @@ class MobileViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = HydrationRepository(app)
 
-    // Sin claves en la app: mientras no exista el cliente de hidrasmart-api (Bloque 2),
-    // el coach responde con la IA del teléfono (predictor + sistema experto), que no necesita internet.
-    private val coach = AiCoach(null)
+    // Coach en la nube a través del servidor hidrasmart-api (Gemini). Sin API_BASE_URL,
+    // responde la IA del teléfono (predictor + sistema experto), que no necesita internet.
+    private val coach = AiCoach(
+        CloudServices.create(
+            app,
+            BuildConfig.API_BASE_URL,
+            FirebaseConfig(BuildConfig.FIREBASE_APP_ID, BuildConfig.FIREBASE_API_KEY, BuildConfig.FIREBASE_PROJECT_ID),
+        )?.coach,
+    )
 
     init {
         // Versiones anteriores guardaban aquí una clave de Gemini en texto plano: se borra del teléfono

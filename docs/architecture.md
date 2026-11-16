@@ -11,8 +11,9 @@
 | Módulo | Paquetes | Responsabilidad |
 | --- | --- | --- |
 | `core` | `domain` | Modelos (`Profile`, `SweatTest`, `SavedSession`...) y `HydrationCalculator` (Kotlin puro, con pruebas) |
-| | `data` | `HydrationRepository` (SharedPreferences + JSON) y `WeatherService` (OpenWeatherMap) |
-| | `ai` | `HydrationPredictor`, `RidgeRegression`, `HydrationInsights`, `LocalCoach`, `PromptBuilder`, `GeminiClient`, `AiCoach` |
+| | `data` | `HydrationRepository` (SharedPreferences + JSON) |
+| | `ai` | `HydrationPredictor`, `RidgeRegression`, `HydrationInsights`, `LocalCoach`, `AiCoach`, `CloudCoach`, `CoachContextBuilder` |
+| | `remote` | `HidraSmartApi` (cliente del servidor), `CloudServices`, `FirebaseAppCheckProvider` (App Check; proveedor de depuración en `src/debug`, Play Integrity en `src/release`), `InstallId` |
 | | `format` | `Formatters`: fechas, miles, decimales y duraciones en español |
 | `wear` | raíz | `MainActivity`, `AppViewModel` |
 | | `alerts` | `SessionEngine` (reglas del entrenamiento), `AlarmScheduler`, `AlertReceiver`, `AlertActivity`, `AlertDiagnostics` |

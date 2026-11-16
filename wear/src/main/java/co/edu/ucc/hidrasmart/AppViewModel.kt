@@ -26,12 +26,15 @@ import co.edu.ucc.hidrasmart.domain.Profile
 import co.edu.ucc.hidrasmart.domain.SweatTest
 import co.edu.ucc.hidrasmart.domain.Weather
 import co.edu.ucc.hidrasmart.format.toLocalDate
+import co.edu.ucc.hidrasmart.remote.CloudServices
+import co.edu.ucc.hidrasmart.remote.FirebaseConfig
 import co.edu.ucc.hidrasmart.sensors.HeartRateReading
 import co.edu.ucc.hidrasmart.sensors.Sensors
 import co.edu.ucc.hidrasmart.surfaces.WatchSurfaces
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -69,9 +72,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     // ---------------- Coach de IA ----------------
-    // Sin claves en la app: mientras no exista el cliente de hidrasmart-api (Bloque 2),
-    // el coach responde con la IA del reloj (predictor + sistema experto), que no necesita internet.
-    private val coach = AiCoach(null)
+    // Servidor hidrasmart-api (coach con Gemini y clima). null si no hay API_BASE_URL:
+    // entonces el coach responde con la IA del reloj y el clima usa los valores manuales.
+    private val cloud = CloudServices.create(
+        app,
+        BuildConfig.API_BASE_URL,
+        FirebaseConfig(BuildConfig.FIREBASE_APP_ID, BuildConfig.FIREBASE_API_KEY, BuildConfig.FIREBASE_PROJECT_ID),
+    )
+    private val coach = AiCoach(cloud?.coach)
     private var coachJob: Job? = null
 
     var coachAnswer by mutableStateOf<CoachAnswer?>(null)
@@ -148,13 +156,24 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- Clima y condiciones ----------------
 
+    /** Clima actual a través del servidor (la clave de OpenWeatherMap vive allá, no en la app). */
     fun refreshWeather() {
-        // El clima en línea se consultará a través de hidrasmart-api (Bloque 2): la app ya no lleva
-        // la clave de OpenWeatherMap. Mientras tanto se usa el último clima guardado o los valores manuales.
-        weatherMessage = if (BuildConfig.API_BASE_URL.isBlank()) {
-            "Clima en línea no configurado: se usan los valores manuales"
-        } else {
-            "Clima en línea disponible en la próxima versión: se usan los valores manuales"
+        val services = cloud
+        if (services == null) {
+            weatherMessage = "Clima en línea no configurado: se usan los valores manuales"
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val c = services.weather(profile.city)
+                repo.saveWeather(c)
+                weather = c
+                weatherMessage = null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                weatherMessage = "Sin conexión: se usa el último clima guardado"
+            }
         }
     }
 

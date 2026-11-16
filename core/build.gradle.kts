@@ -34,6 +34,12 @@ kotlin {
 dependencies {
     api(libs.kotlinx.coroutines.android)
 
+    // Firebase App Check: demuestra al servidor hidrasmart-api que la petición viene de la app original.
+    // Release usa Play Integrity; debug usa el proveedor de depuración (src/debug y src/release).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
+
     testImplementation(libs.junit)
     testImplementation(libs.json)
 }

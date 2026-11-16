@@ -6,7 +6,7 @@
 ./gradlew :core:testDebugUnitTest
 ```
 
-Hay 31 pruebas en `core/src/test`: 12 de la calculadora NATA y 19 de la IA. También corren solas en GitHub Actions en cada push.
+Hay 40 pruebas en `core/src/test`: 12 de la calculadora NATA y 28 de la IA y del contrato con el servidor. El servidor tiene 45 más en `server/test` (`npm test`). También corren solas en GitHub Actions en cada push.
 
 ## Probar las alertas con la app cerrada (reloj)
 
@@ -49,4 +49,4 @@ Si no hay sensor o no se da el permiso, la app muestra una frecuencia **simulada
 
 - **Sin servidor configurado:** el Coach IA responde con la IA local. La pantalla dice "IA en el reloj · sin internet".
 - **Modelo predictivo:** en el celular, Historial › **Entrenamiento**, registra 3 entrenamientos con distinta duración. En Coach IA › Planear, la fuente cambia a "Modelo IA personal".
-- **Con servidor:** pon `API_BASE_URL` en `local.properties`. La app no acepta claves de API.
+- **Con servidor:** pon `API_BASE_URL` en `local.properties` (ver [server.md](server.md#probar-la-app-con-el-servidor-local)). Las respuestas dicen "Respuesta de Gemini"; si algo falla, la IA local responde y la nota dice por qué ("Sin internet", "Límite diario"...).
