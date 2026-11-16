@@ -7,6 +7,14 @@
 - Se quitó la opción de pegar una clave de Gemini en el perfil del celular; la clave guardada por versiones anteriores se borra al abrir la app.
 - Mientras se integra el servidor, el coach responde con la IA local y el clima usa los valores manuales.
 
+### Servidor `hidrasmart-api` (nuevo, carpeta `server/`)
+- Node.js 24 + TypeScript + Fastify, listo para Google Cloud Run.
+- `POST /v1/coach`: prompt versionado en el servidor (portado de `PromptBuilder`), peso enviado como rango, pregunta separada y marcada como no confiable, `safetySettings`, 8 s máximo con 1 reintento, corte de circuito, caché de 15 min para el consejo sin pregunta.
+- `GET /v1/weather`: clima de OpenWeatherMap con caché de 30 min por ciudad.
+- Firebase App Check obligatorio, cuota diaria por instalación y global (Firestore), validación estricta de entradas, sin CORS.
+- Logs JSON para Cloud Logging con tokens, latencia y versión del prompt, sin datos personales.
+- 45 pruebas automáticas, Dockerfile, flujos `server-ci.yml` y `server-deploy.yml` (Workload Identity Federation) y guía `docs/server.md`.
+
 ### Google Play
 - Celular con `targetSdk 36`; reloj en `35`.
 - `versionCode` separados: reloj `2000000 + appVersionCode`, celular `1000000 + appVersionCode` (`gradle.properties`).

@@ -6,7 +6,10 @@ name: Android CI
 on:
   push:
     branches: [main]
+    # Los cambios solo del servidor los revisa server-ci.yml
+    paths-ignore: ["server/**", "docs/server.md", ".github/workflows/server-*.yml"]
   pull_request:
+    paths-ignore: ["server/**", "docs/server.md", ".github/workflows/server-*.yml"]
   workflow_dispatch:
 
 jobs:

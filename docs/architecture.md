@@ -21,6 +21,7 @@
 | | `ui` | `components`, `navigation` (`HidraSmartApp`, `Routes`), `screens` (Home, Intake, Workout, Coach, History, Profile), `theme` |
 | `mobile` | raíz | `MainActivity`, `MobileViewModel` |
 | | `ui` | `components`, `navigation` (barra inferior), `screens` (Home, Coach, History, Profile), `theme` |
+| `server` | `routes`, `services`, `plugins` | Servidor `hidrasmart-api` en Cloud Run: coach con Gemini (prompt versionado, cuotas, reintento) y clima. Guarda las claves; ver [server.md](server.md) |
 
 ## Flujo de una alerta en el reloj (con la app cerrada)
 

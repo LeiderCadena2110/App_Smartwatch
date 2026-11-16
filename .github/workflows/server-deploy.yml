@@ -1,0 +1,67 @@
+# Despliega hidrasmart-api en Google Cloud Run al subir una etiqueta api-vX.Y.Z:
+#   git tag api-v1.0.0 && git push origin api-v1.0.0
+#
+# Usa Workload Identity Federation: GitHub no guarda ninguna llave de Google Cloud.
+# Variables de repositorio necesarias (Settings > Secrets and variables > Actions > Variables):
+#   GCP_PROJECT_ID, GCP_REGION, GCP_WIF_PROVIDER, GCP_DEPLOY_SA
+# La primera vez el servicio se crea a mano (docs/server.md); este flujo solo publica versiones nuevas
+# y conserva la configuración, los secretos y la cuenta de servicio del servicio.
+name: Server Deploy
+
+on:
+  push:
+    tags: ["api-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: server-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Tests before deploy
+        working-directory: server
+        run: npm ci && npm run typecheck && npm test
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy hidrasmart-api \
+            --source server \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --update-env-vars "APP_VERSION=${GITHUB_REF_NAME}" \
+            --quiet
+
+      - name: Smoke test
+        run: |
+          URL=$(gcloud run services describe hidrasmart-api --project "${{ vars.GCP_PROJECT_ID }}" --region "${{ vars.GCP_REGION }}" --format='value(status.url)')
+          curl --fail --silent --show-error "$URL/healthz"
+          # Sin token de App Check debe responder 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$URL/v1/coach")" = "401"

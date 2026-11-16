@@ -64,6 +64,8 @@ App_Smartwatch/
 ├── mobile/                       App del celular (Android)
 │   └── src/main/java/co/edu/ucc/hidrasmart/mobile/
 │       └── ui/                   components, navigation, screens, theme
+├── server/                       Servidor hidrasmart-api (Node.js + TypeScript, Cloud Run)
+│   └── src/                      routes, services (Gemini, prompt, cuotas), plugins (App Check, logs)
 ├── docs/                         Documentación
 └── .github/workflows/            Compilación, pruebas y publicación automáticas
 ```

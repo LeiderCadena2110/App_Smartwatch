@@ -1,0 +1,8 @@
+# Archivos que gcloud run deploy --source NO sube a Cloud Build
+node_modules
+dist
+test
+coverage
+.env
+.env.*
+*.log
